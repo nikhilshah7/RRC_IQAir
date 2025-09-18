@@ -1,0 +1,41 @@
+---
+title: "monitors"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+
+monitors <- read_excel("data/airmonitors_addresses.xlsx", 1)
+```
+
+```{r}
+monitors <- monitors |>
+  mutate(full_address = str_c(address, city, "CA", sep = ", "))
+```
+
+```{r}
+# install.packages("tidygeocoder")
+library(tidygeocoder)
+
+monitors_osm <- geocode(monitors, address = full_address) |>
+  select(monitor, serial, address, city, location, full_address, lat, long)
+
+monitors <- geocode(monitors, address = full_address, method = 'census') 
+
+monitors$lat[28] <- 34.03781
+monitors$long[28] <- -117.4836
+
+# osm method (default) can't find La Canada, Teakwood, W Orchard, Cricket
+# census method can't find Cinnamon
+
+# 14995 Cinnamon Dr, Fontana, CA (34.03781, -117.4836)
+# 18449 La Canada Ct, Bloomington, CA (34.06047, -117.4018)
+# 1063 S Teakwood Ave, Bloomington, CA (34.08215, -117.3895)
+# 1477 W Orchard Street, Bloomington, CA (34.09003, -117.4004)
+# 19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)
+
+# I guess we just add one manually?
+```
+
