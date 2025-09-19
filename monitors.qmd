@@ -19,8 +19,8 @@ monitors <- monitors |>
 # install.packages("tidygeocoder")
 library(tidygeocoder)
 
-monitors_osm <- geocode(monitors, address = full_address) |>
-  select(monitor, serial, address, city, location, full_address, lat, long)
+#monitors_osm <- geocode(monitors, address = full_address) |>
+  #select(monitor, serial, address, city, location, full_address, lat, long)
 
 monitors <- geocode(monitors, address = full_address, method = 'census') 
 
@@ -37,5 +37,24 @@ monitors$long[28] <- -117.4836
 # 19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)
 
 # I guess we just add one manually?
+```
+
+```{r}
+coords <- monitors |>
+  mutate(Source = str_to_lower(serial)) |>
+  select(lat, long, Source)
+
+monitor1 <- read_csv("data/IQAir_raw_0vs4saazeb1_01Jan25-12Sep25_hourly.csv")
+
+coords |>
+  right_join(monitor1, by = "Source")
+```
+
+```{r}
+library(leaflet)
+
+leaflet(monitor1) |>
+  addTiles() |>
+  addMarkers(~lat, ~long, icon = )
 ```
 
