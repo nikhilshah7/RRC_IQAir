@@ -3,54 +3,163 @@ title: "monitors"
 format: html
 ---
 
+## Libraries
+
+- tidyverse handles all the data wrangling
+- readxl is for reading in the manually-edited master list of air monitors
+- tidygeocoder adds coordinates based on the addresses of monitors
+
 ```{r}
+#| label: Libraries
+
 library(tidyverse)
 library(readxl)
+library(tidygeocoder)
+```
+
+## Monitor Master List
+
+- Adds a full address column (minus zip code) which the geocoder needs to work
+- Does the geocoding to add the coordinates (it kind of just neatly adds a lat and long column which is cool)
+- Manually fills in missing coordinates
+- Makes a new, simplified dataset that can be used to join with the real datasets to add coordinates
+- Problem: it doesn't recognize all of the addresses
+  - osm method (default) can't find La Canada, Teakwood, W Orchard, Cricket
+  - census method can't find Cinnamon
+  - right now it uses census method and adds cinnamon manually
+    - 14995 Cinnamon Dr, Fontana, CA (34.03781, -117.4836)
+    - 18449 La Canada Ct, Bloomington, CA (34.06047, -117.4018)
+    - 1063 S Teakwood Ave, Bloomington, CA (34.08215, -117.3895)
+    - 1477 W Orchard Street, Bloomington, CA (34.09003, -117.4004)
+    - 19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)
+  - the problem is when new monitors get added they go to the top so Cinnamon Dr isn't always going to be the 33rd row
+  - I would like for it to figure out which row is Cinnamon and add it there
+  - Better yet using the geocoder with another method to add it to the missing rows
+
+```{r}
+#| label: Monitor Master List
 
 monitors <- read_excel("data/airmonitors_addresses.xlsx", 1)
-```
 
-```{r}
 monitors <- monitors |>
-  mutate(full_address = str_c(address, city, "CA", sep = ", "))
-```
+  mutate(full_address = str_c(address, 
+                              city, 
+                              "CA", 
+                              sep = ", "))
 
-```{r}
-# install.packages("tidygeocoder")
-library(tidygeocoder)
+# Searches for coordinates for each address
+monitors <- geocode(monitors, 
+                    address = full_address, 
+                    method = 'census') 
 
 #monitors_osm <- geocode(monitors, address = full_address) |>
   #select(monitor, serial, address, city, location, full_address, lat, long)
 
-monitors <- geocode(monitors, address = full_address, method = 'census') 
+# One of the addresses doesn't work with the census method so this fills it in manually
+monitors$lat[33] <- 34.03781
+monitors$long[33] <- -117.4836
 
-monitors$lat[28] <- 34.03781
-monitors$long[28] <- -117.4836
-
-# osm method (default) can't find La Canada, Teakwood, W Orchard, Cricket
-# census method can't find Cinnamon
-
-# 14995 Cinnamon Dr, Fontana, CA (34.03781, -117.4836)
-# 18449 La Canada Ct, Bloomington, CA (34.06047, -117.4018)
-# 1063 S Teakwood Ave, Bloomington, CA (34.08215, -117.3895)
-# 1477 W Orchard Street, Bloomington, CA (34.09003, -117.4004)
-# 19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)
-
-# I guess we just add one manually?
-```
-
-```{r}
+# The main data spreadsheets have the serial numbers in all lowercase so this matches it to that
 coords <- monitors |>
   mutate(Source = str_to_lower(serial)) |>
-  select(lat, long, Source)
-
-monitor1 <- read_csv("data/IQAir_raw_0vs4saazeb1_01Jan25-12Sep25_hourly.csv")
-
-coords |>
-  right_join(monitor1, by = "Source")
+  select(lat, 
+         long, 
+         Source)
 ```
 
+## Full Air Quality Dataset
+
+- Needs input of the dataset parameters (dates and frequency), then it should be able to handle the creation of the main dataset on its own
+- Recognizes the folder of all the monitor sheets in the data folder
+- Figures out how many files are in that folder (for some reason length() returns it with an L at the end so it extracts just the number)
+- Adds each small spreadsheet to one big spreadsheet
+- Imports data into RStudio
+- Adds coordinate columns
+- Should use lubridate to add a month column/whatever else if need be
+
 ```{r}
+#| label: Full Air Quality Dataset
+
+# Unzip the IQAir data export into the RRC_IQAir/data/ folder.
+
+# Fill in the bounds of the dataset and the rate of data collection. 
+# end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
+start_date <- '01Jan25'
+end_date <-  '01Sep25'
+frequency <- 'monthly'
+data_info <- str_c(start_date, 
+                   '-',
+                   end_date, 
+                   '_', 
+                   frequency)
+
+dataset_folder <- str_c('data/IQAir_Export_raw_devices_', 
+                        data_info)
+
+# Gets the number of files in the dataset folder (so it knows how many times to run the import)
+monitor_count <- as.numeric(str_extract(length(list.files(dataset_folder)), 
+                                        '\\d+'))
+#monitor_count <- as.numeric(str_extract(length(list.files('/data')), '\\d+'))
+
+# Runs 58 times. Goes through each serial number in the master list, finds the corresponding csv file, adds it to one big table one after the other.
+import_data <- function(dataset_folder) {
+  for (i in 1:monitor_count) {
+    current_directory <- str_c(dataset_folder, 
+                               '/IQAir_raw_', 
+                               coords$Source[i], 
+                               '_', 
+                               data_info, 
+                               '.csv')
+    if (i == 1) {
+      big_table <- read_csv(current_directory)
+    } else
+      current_table <- read_csv(current_directory)
+      big_table <- bind_rows(big_table, 
+                             current_table)
+  }
+}
+
+data <- import_data(dataset_folder)
+
+data <- data |>
+  left_join(coords, by = 'Source')
+
+# use lubridate to add a month column
+```
+
+## Plots
+
+- Very basic timeseries scatterplots
+- TBD
+
+```{r}
+#| label: Plots
+
+data |>
+  ggplot(aes(x = month, 
+             y = 'AQI US')) +
+  geom_point() +
+  geom_smooth(se = F)
+
+data |>
+  ggplot(aes(x = month, 
+             y = 'AQI US')) +
+  geom_point() +
+  geom_line(aes(group = Source))
+```
+
+## Maps
+
+### To Do
+- Label each marker with air quality
+- Create a shiny app
+- Add a time slider to be able to see the data change over time
+- Use the API to have it update in real time
+- Host a shiny app online
+
+```{r}
+#| label: Maps
+
 library(leaflet)
 
 leaflet(monitor1) |>
