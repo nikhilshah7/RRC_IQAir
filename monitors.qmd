@@ -84,8 +84,8 @@ coords <- monitors |>
 
 # Fill in the bounds of the dataset and the rate of data collection. 
 # end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
-start_date <- '01Jan25'
-end_date <-  '01Sep25'
+start_date <- '29Jan25'
+end_date <-  '29Sep25'
 frequency <- 'monthly'
 data_info <- str_c(start_date, 
                    '-',
@@ -112,11 +112,13 @@ import_data <- function(dataset_folder) {
                                '.csv')
     if (i == 1) {
       big_table <- read_csv(current_directory)
-    } else
+    } else {
       current_table <- read_csv(current_directory)
       big_table <- bind_rows(big_table, 
                              current_table)
+    }
   }
+  return(big_table)
 }
 
 data <- import_data(dataset_folder)
