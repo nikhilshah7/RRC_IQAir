@@ -1,5 +1,5 @@
 ---
-title: "monitors"
+title: "Air Monitor Data Wrangling and Visualizations"
 format: html
 ---
 
@@ -79,6 +79,8 @@ coords <- monitors |>
 
 ```{r}
 #| label: Full Air Quality Dataset
+#| message: false
+#| warning: false
 
 # Unzip the IQAir data export into the RRC_IQAir/data/ folder.
 
@@ -123,8 +125,12 @@ import_data <- function(dataset_folder) {
 
 data <- import_data(dataset_folder)
 
-data <- data |>
-  left_join(coords, by = 'Source')
+# OH MY GOD IT WORKS LMAO
+
+data_prepared <- data |>
+  left_join(coords, by = 'Source') |>
+  mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
+  mutate(month = month(datetime))
 
 # use lubridate to add a month column
 ```
@@ -137,17 +143,18 @@ data <- data |>
 ```{r}
 #| label: Plots
 
-data |>
+data_prepared |>
   ggplot(aes(x = month, 
-             y = 'AQI US')) +
+             y = `AQI US`)) +
   geom_point() +
   geom_smooth(se = F)
 
-data |>
+data_prepared |>
   ggplot(aes(x = month, 
-             y = 'AQI US')) +
+             y = `AQI US`)) +
   geom_point() +
-  geom_line(aes(group = Source))
+  geom_line(aes(group = Source)) +
+  geom_smooth(se = F)
 ```
 
 ## Maps
@@ -160,12 +167,24 @@ data |>
 - Host a shiny app online
 
 ```{r}
-#| label: Maps
-
 library(leaflet)
+library(leaflet.extras)
 
-leaflet(monitor1) |>
+leaflet(data_prepared) |>
   addTiles() |>
-  addMarkers(~lat, ~long, icon = )
+  addLabelOnlyMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(`AQI US`),
+    labelOptions = labelOptions(
+      noHide = TRUE,
+      direction = "center",
+      textOnly = TRUE,
+      style = list(
+        "color" = "white",
+        "background" = 'gold',  
+        "border-radius" = "50%",
+        "text-align" = "center"
+      )))
+
 ```
 
