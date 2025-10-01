@@ -60,10 +60,11 @@ monitors$lat[33] <- 34.03781
 monitors$long[33] <- -117.4836
 
 # The main data spreadsheets have the serial numbers in all lowercase so this matches it to that
-coords <- monitors |>
+coords <- monitors |> 
   mutate(Source = str_to_lower(serial)) |>
   select(lat, 
          long, 
+         location,
          Source)
 ```
 
@@ -186,5 +187,51 @@ leaflet(data_prepared) |>
         "text-align" = "center"
       )))
 
+```
+```{r}
+## Summary stats and some plots
+library(psych)
+
+#table(data_prepared$month) #July through September are most common months 
+#summary(filter(data_prepared, month >= 7 & month <=9))
+
+describeBy(data_prepared[5], group = data_prepared$month, mat = T)
+
+## Mean AQI US and PM2.5 per month per location (indoor or outdoor)
+stats <- describeBy(data_prepared[c(5,7)], 
+                    list(data_prepared$month, 
+                         data_prepared$location), 
+                    mat = T)
+
+stats_clean <- stats |>
+  select(month = group1,
+         location = group2,
+         variable = vars,
+         mean) |>
+  mutate(variable = recode(
+    variable, 
+    `1` = "AQI US mean",
+    `2` = "PM2.5 mean")) 
+    
+stats_wide <- stats_clean |>
+  pivot_wider(
+    names_from = variable,
+    values_from = mean, 
+  )
+
+
+stats_wide |> 
+  ggplot(aes(x = month,
+             y = `AQI US mean`,
+             fill = location)) + 
+  geom_col(position = "dodge") 
+
+stats_wide |> 
+  ggplot(aes(x = month,
+             y = `PM2.5 mean`,
+             fill = location)) + 
+  geom_col(position = "dodge") 
+
+           
 ```
 
