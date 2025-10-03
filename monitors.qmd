@@ -232,6 +232,7 @@ stats_wide |>
              fill = location)) + 
   geom_col(position = "dodge") 
 
+gabbytest
            
 ```
 
