@@ -156,6 +156,43 @@ data_prepared |>
   geom_point() +
   geom_line(aes(group = Source)) +
   geom_smooth(se = F)
+
+average <- data_prepared |>
+  filter(location == 'outdoor') |>
+  summarize(x = "Inland Empire 2025",
+            average_pm25 = mean(`PM2.5 (ug/m3)`),
+            average_pm10 = mean(`PM10 (ug/m3)`),
+            average_aqi = mean(`AQI US`)) |>
+  bind_rows(data.frame(x = c('WHO Guideline', 'US 2024 Average', 'EPA Standard'),
+                       average_pm25 = c(5, 7.08, 9.0),
+                       average_pm10 = c(15, NA, NA),
+                       average_aqi = c(NA, 39, NA))) |>
+  mutate(average_pm25 = round(average_pm25, 2)) |>
+  mutate(x = fct_reorder(x, average_pm25))
+  
+  
+# WHO PM2.5 guideline: 5.00 micrograms/cu m
+# US Average: 7.08 
+# IE Average: 15.02
+  
+average |>
+  ggplot() +
+  geom_col(aes(x = x,
+               y = average_pm25,
+               fill = x)) +
+  geom_text(aes(x = x,
+                y = average_pm25-1,
+                label = average_pm25), 
+            size = 5) +
+  labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
+       title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
+       subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
+  scale_fill_manual(values = c('#339933', '#eedd44', '#e9bb44', '#dd9944')) + 
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        legend.position = "none")
+
+c('#eeaa33','#eeee33','#33aa33')
 ```
 
 ## Maps
@@ -188,6 +225,7 @@ leaflet(data_prepared) |>
       )))
 
 ```
+
 ```{r}
 ## Summary stats and some plots
 library(psych)
@@ -231,8 +269,6 @@ stats_wide |>
              y = `PM2.5 mean`,
              fill = location)) + 
   geom_col(position = "dodge") 
-
-gabbytest
            
 ```
 
