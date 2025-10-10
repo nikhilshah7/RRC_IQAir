@@ -131,7 +131,11 @@ data <- import_data(dataset_folder)
 data_prepared <- data |>
   left_join(coords, by = 'Source') |>
   mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
-  mutate(month = month(datetime))
+  mutate(month = month(datetime)) |>
+  mutate(color = cut(`AQI US`,
+                      labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
+                      breaks <- c(0, 50, 100, 150, 200, 300, Inf),
+                      right = T))
 
 # use lubridate to add a month column
 ```
@@ -187,7 +191,7 @@ average |>
   labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
        title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
        subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
-  scale_fill_manual(values = c('#339933', '#eedd44', '#e9bb44', '#dd9944')) + 
+  scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944')) + 
   theme_bw() +
   theme(axis.title.x = element_blank(),
         legend.position = "none")
@@ -208,6 +212,11 @@ c('#eeaa33','#eeee33','#33aa33')
 library(leaflet)
 library(leaflet.extras)
 
+colors <- c('green', 'yellow', 'orange', 'red', 'purple', 'maroon')
+bins <- c(0, 50, 100, 150, 200, 300)
+
+aqi_pal = colorFactor(colors, domain = data_prepared$color)
+
 leaflet(data_prepared) |>
   addTiles() |>
   addLabelOnlyMarkers(
@@ -216,13 +225,38 @@ leaflet(data_prepared) |>
     labelOptions = labelOptions(
       noHide = TRUE,
       direction = "center",
-      textOnly = TRUE,
+      textOnly = FALSE,
       style = list(
         "color" = "white",
-        "background" = 'gold',  
+        "background" = '#dd9944',  
         "border-radius" = "50%",
         "text-align" = "center"
       )))
+
+'#dd9944'
+
+data_prepared |>
+  filter(location == 'outdoor') |>
+  leaflet() |>
+  addTiles() |>
+  addCircleMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(`AQI US`),
+    color = ~aqi_pal(color)) |>
+  addLabelOnlyMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(`AQI US`),
+    labelOptions = labelOptions(
+      noHide = TRUE,
+      direction = "center",
+      textOnly = T,
+      style = list(
+        "color" = ~color,
+        #"background" = '#dd9944',  
+        "border-radius" = "50%",
+        "text-align" = "center"
+      )))
+
 
 ```
 
