@@ -15,6 +15,7 @@ format: html
 library(tidyverse)
 library(readxl)
 library(tidygeocoder)
+library(writexl)
 ```
 
 ## Monitor Master List
@@ -126,8 +127,6 @@ import_data <- function(dataset_folder) {
 
 data <- import_data(dataset_folder)
 
-# OH MY GOD IT WORKS LMAO
-
 data_prepared <- data |>
   left_join(coords, by = 'Source') |>
   mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
@@ -137,7 +136,18 @@ data_prepared <- data |>
                       breaks <- c(0, 50, 100, 150, 200, 300, Inf),
                       right = T))
 
-# use lubridate to add a month column
+monitors_activity <- data_prepared |>
+  group_by(Source) |>
+  summarize(months = n()) |>
+  mutate(Source = str_to_upper(Source))
+
+
+monitors_activity_full <- monitors |>
+  left_join(monitors_activity, join_by(serial == Source)) 
+
+monitors_activity_full |>
+  write_xlsx("data/monitors_activity_full.xlsx")
+
 ```
 
 ## Plots
@@ -211,9 +221,16 @@ c('#eeaa33','#eeee33','#33aa33')
 ```{r}
 library(leaflet)
 library(leaflet.extras)
+library(sf)
 
 colors <- c('green', 'yellow', 'orange', 'red', 'purple', 'maroon')
-bins <- c(0, 50, 100, 150, 200, 300)
+#bins <- c(0, 50, 100, 150, 200, 300)
+
+
+WH.url <- 'https://raw.githubusercontent.com/RadicalResearchLLC/WarehouseMap/main/WarehouseCITY/geoJSON/comboFinal.geojson'
+
+warehouses <- st_read(WH.url) |>  
+  st_transform(crs = 4326)
 
 aqi_pal = colorFactor(colors, domain = data_prepared$color)
 
@@ -255,7 +272,10 @@ data_prepared |>
         #"background" = '#dd9944',  
         "border-radius" = "50%",
         "text-align" = "center"
-      )))
+      ))) |>
+  addPolygons(data = warehouses,
+              color = 'black',
+              weight = 1)
 
 
 ```
