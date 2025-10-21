@@ -207,6 +207,19 @@ average |>
         legend.position = "none")
 
 c('#eeaa33','#eeee33','#33aa33')
+
+
+
+data_prepared |> 
+  filter(location == 'outdoor') |>
+  #filter(`AQI US` < 50)
+  ggplot(aes(x = `PM2.5 (ug/m3)`,
+                 y = `AQI US`)) +
+  geom_point() +
+  geom_vline(xintercept = 9) +
+  geom_smooth()
+
+210/217
 ```
 
 ## Maps
