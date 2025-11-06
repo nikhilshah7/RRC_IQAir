@@ -212,15 +212,66 @@ c('#eeaa33','#eeee33','#33aa33')
 
 data_prepared |> 
   filter(location == 'outdoor') |>
-  #filter(`AQI US` < 50)
+  #filter(`AQI US` < 48)
   ggplot(aes(x = `PM2.5 (ug/m3)`,
                  y = `AQI US`)) +
   geom_point() +
   geom_vline(xintercept = 9) +
   geom_smooth()
 
-210/217
+82/89
+
+
 ```
+## Public Health Implications
+
+```{r}
+IE <- average$average_pm25[1]
+US <- average$average_pm25[3]
+
+# All numbers are returned as a % increase over the average American (6.4 = IE resident is 6.4% more likely to have X than the average US resident)
+
+# Comparative risk of respiratory disease (Zanobetti et al., 2009)
+((1.027 ** ((IE - US) / 10)) - 1) * 100
+
+# Comparative risk of lung cancer mortality (Pope et al., 2002)
+((1.08 ** ((IE - US) / 10)) - 1) * 100
+
+# Comparative risk of lung cancer mortality (Laden et al., 2006)
+((1.27 ** ((IE - US) / 10)) - 1) * 100
+
+# Comparative risk of lung cancer mortality (Turner et al., 2011)
+((1.21 ** ((IE - US) / 10)) - 1) * 100
+
+# Comparative risk of lung cancer mortality (Katanoda et al., 2011)
+((1.24 ** ((IE - US) / 10)) - 1) * 100
+
+# Comparative risk of lung cancer (Raaschou-Nielsen et al., 2013)
+((1.18 ** ((IE - US) / 5)) - 1) * 100
+
+# Comparative risk of lung adenocarcinoma (Raaschou-Nielsen et al., 2013)
+((1.55 ** ((IE - US) / 5)) - 1) * 100
+
+# Comparative risk of childhood asthma hospital admissions (Tecer et al., 2007)
+((1.18 ** ((IE - US) / 10)) - 1) * 100
+
+# Comparative risk of pneumonia (Katanoda et al., 2011)
+((1.17 ** ((IE - US) / 10)) - 1) * 100
+
+
+health <- data.frame(issue = c('Respiratory Disease', 'Lung Cancer Mortality', 'Lung Cancer', 'Lung Adenocarcinoma'),
+                     normal = c(100, 100, 100, 100),
+                     ie = c(101.64, 106.35, 130.06, 200.56))
+
+health_long <- health |>
+  pivot_longer(cols = c(normal, ie), names_to = 'population', values_to = 'comp_risk')
+
+health_long |>
+  ggplot(aes(x = issue, y = comp_risk, fill = population)) +
+  geom_col(position = position_dodge(width = 0.9)) 
+```
+
+
 
 ## Maps
 
