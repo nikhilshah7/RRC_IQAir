@@ -338,4 +338,36 @@ stats_wide |>
   geom_col(position = "dodge") 
            
 ```
+Sorting the sites by location to then get summary stats for our 11/15 data sharing! 
+```{r}
 
+addressandserialnumbers <- monitors %>%
+  select(serial,city)%>%
+  rename(Source = serial)
+
+data_prepared <- data_prepared %>%
+  mutate(Source = trimws(toupper(as.character(Source))))
+
+addressandserialnumbers <- addressandserialnumbers %>%
+  mutate(Source = trimws(toupper(as.character(Source))))
+
+
+monitorswithcity <- addressandserialnumbers %>%
+  left_join(data_prepared, by = "Source")
+   
+
+citysummary <- monitorswithcity %>%
+  group_by(city) %>%
+  summarise(across(
+    where(is.numeric),
+    list(
+       mean = ~mean(.x, na.rm = TRUE),
+      sd   = ~sd(.x, na.rm = TRUE),
+      min  = ~min(.x, na.rm = TRUE),
+      max  = ~max(.x, na.rm = TRUE)
+    ),
+    .names = "{.col}_{.fn}"
+  ))
+#what is the NA output?? ask Nikhil about look at the original address doc, am I missing a city for about 3 monitors?
+
+```
