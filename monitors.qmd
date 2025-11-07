@@ -88,9 +88,9 @@ coords <- monitors |>
 
 # Fill in the bounds of the dataset and the rate of data collection. 
 # end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
-start_date <- '29Jan25'
-end_date <-  '29Sep25'
-frequency <- 'monthly'
+start_date <- '01Jan25'
+end_date <-  '07Nov25'
+frequency <- 'hourly'
 data_info <- str_c(start_date, 
                    '-',
                    end_date, 
