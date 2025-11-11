@@ -177,10 +177,10 @@ average <- data_prepared |>
             average_pm25 = mean(`PM2.5 (ug/m3)`),
             average_pm10 = mean(`PM10 (ug/m3)`),
             average_aqi = mean(`AQI US`)) |>
-  bind_rows(data.frame(x = c('WHO Guideline', 'US 2024 Average', 'EPA Standard'),
-                       average_pm25 = c(5, 7.08, 9.0),
-                       average_pm10 = c(15, NA, NA),
-                       average_aqi = c(NA, 39, NA))) |>
+  bind_rows(data.frame(x = c('WHO Guideline', 'US 2024 Average', 'EPA Standard', 'SoCal 2025 Average'),
+                       average_pm25 = c(5, 7.08, 9.0, 10.82),
+                       average_pm10 = c(15, NA, NA, 14.18),
+                       average_aqi = c(NA, 39, NA, NA))) |>
   mutate(average_pm25 = round(average_pm25, 2)) |>
   mutate(x = fct_reorder(x, average_pm25))
   
@@ -201,7 +201,7 @@ average |>
   labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
        title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
        subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
-  scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944')) + 
+  scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944', '#dd6644')) + 
   theme_bw() +
   theme(axis.title.x = element_blank(),
         legend.position = "none")
@@ -489,12 +489,17 @@ write_csv(all_PA_data, output_file)
 all_PA_data <- read.csv(output_file)
 
 
-nrow(all_PA_data)
-average_PM25 <- mean(all_PA_data$pm2.5_atm) # very high, some crazy outliers, 67.58
-average_PM10 <-mean(all_PA_data$pm10.0_atm) # same, 69.25
+#nrow(all_PA_data)
 
-summary(all_PA_data$pm2.5_atm) # median is 9
-summary(all_PA_data$pm10.0_atm) # median is 10.0
+## We chose 325 as the cut off because PM2.5 325 correlates to AQI 500 according to AirNow AQI concentration calculator. AQI 500 is very high, unhealthy air quality index
+under_325_pm2.5 <- all_PA_data |> filter(pm2.5_atm <325)
+average_PM25 <- mean(under_325_pm2.5$pm2.5_atm) # 10.82
+summary(under_325_pm2.5$pm2.5_atm) # median is 8.7
+
+## PM10 of 604 correlates to AQI 500
+under_604_pm10 <- all_PA_data |> filter(pm10.0_atm <604)
+average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
+summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
 ```
