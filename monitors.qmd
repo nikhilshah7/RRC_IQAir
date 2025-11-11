@@ -405,7 +405,33 @@ addressandserialnumbers <- addressandserialnumbers %>%
 
 monitorswithcity <- addressandserialnumbers %>%
   left_join(data_prepared, by = "Source")
-   
+
+monitorswithcity <- monitorswithcity %>%
+  filter(!is.na(city))
+
+ggplot(
+  data=monitorswithcity,
+  mapping = aes(x=city,y=`AQI US`)) + 
+  geom_boxplot(mapping=aes(),alpha=0.6) +
+  labs(x = "City",y="AQI US")+
+  theme_minimal()
+
+ggplot(
+  data=monitorswithcity,
+  mapping = aes(x=city,y=`PM2.5 (ug/m3)`)) + 
+  geom_boxplot(mapping=aes(),alpha=0.6) +
+  labs(x = "City",y="PM 2.5 (ug/m3)")+
+  theme_minimal()
+
+ggplot(data=monitorswithcity,mapping=aes(x=city,y=`PM10 (ug/m3)`))+
+  geom_boxplot(mapping=aes(),alpha=0.6)+
+   labs(x = "City",y="PM10 (ug/m3)")+
+  theme_minimal()
+
+ggplot(data=monitorswithcity,mapping=aes(x=city,y=`CO2 (ppm)`))+
+  geom_boxplot(mapping=aes(),alpha=0.6)+
+   labs(x = "City",y="CO2 (ppm)")+
+  theme_minimal()
 
 citysummary <- monitorswithcity %>%
   group_by(city) %>%
@@ -419,6 +445,16 @@ citysummary <- monitorswithcity %>%
     ),
     .names = "{.col}_{.fn}"
   ))
-#what is the NA output?? ask Nikhil about look at the original address doc, am I missing a city for about 3 monitors?
+#what is the NA output?? ask Nikhil about look at the original address doc, am I missing a city for about 3 monitors?, unidentified monitors took out of the data so its more easily intepretable 
+
+ggplot(data=citysummary,mapping=aes(y=`AQI US_mean`))+
+  geom_point(mapping=aes(color=city),size=5)
+
+```
+Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly
+```{r}
+
+
+
 
 ```
