@@ -88,9 +88,9 @@ coords <- monitors |>
 
 # Fill in the bounds of the dataset and the rate of data collection. 
 # end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
-start_date <- '29Jan25'
-end_date <-  '29Sep25'
-frequency <- 'monthly'
+start_date <- '01Jan25'
+end_date <-  '07Nov25'
+frequency <- 'hourly'
 data_info <- str_c(start_date, 
                    '-',
                    end_date, 
@@ -456,5 +456,45 @@ Starting a new chunk of data visualizations by month from the data! (possibly tr
 
 
 
+
+```
+
+Purple Air Data! Each monitor is a separate sheet so merging them all 
+
+```{r}
+library(readr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+
+PA_dataset_folder <- 'data/Purple_Air_Data_11_8'
+
+output_file <- 'data/PA_Combined.csv'
+
+all_PA_files <- list.files(PA_dataset_folder, pattern = "\\.csv$", full.names = TRUE)
+
+all_PA_data <- lapply(all_PA_files, function(file) {
+  sensor_id <- str_extract(basename(file), "^\\d+")
+  df <- suppressMessages(read_csv(file, show_col_types = FALSE))
+  if (nrow(df) == 0) return(NULL)
+  df <- df %>%
+    mutate(
+      time_stamp = as.POSIXct(time_stamp, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC"),
+      SensorID = sensor_id
+    )
+  return(df)
+}) |> bind_rows()
+
+write_csv(all_PA_data, output_file)
+all_PA_data <- read.csv(output_file)
+
+
+nrow(all_PA_data)
+average_PM25 <- mean(all_PA_data$pm2.5_atm) # very high, some crazy outliers, 67.58
+average_PM10 <-mean(all_PA_data$pm10.0_atm) # same, 69.25
+
+summary(all_PA_data$pm2.5_atm) # median is 9
+summary(all_PA_data$pm10.0_atm) # median is 10.0
+```
 
 ```
