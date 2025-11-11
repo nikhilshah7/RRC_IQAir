@@ -450,6 +450,7 @@ all_PA_data <- lapply(all_PA_files, function(file) {
 }) |> bind_rows()
 
 write_csv(all_PA_data, output_file)
+all_PA_data <- read.csv(output_file)
 
 
 nrow(all_PA_data)
