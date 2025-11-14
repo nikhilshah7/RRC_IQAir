@@ -130,23 +130,24 @@ data <- import_data(dataset_folder)
 data_prepared <- data |>
   left_join(coords, by = 'Source') |>
   mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
-  mutate(month = month(datetime)) |>
+  mutate(month = month(datetime),
+         day = day(datetime)) |>
   mutate(color = cut(`AQI US`,
                       labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
                       breaks <- c(0, 50, 100, 150, 200, 300, Inf),
                       right = T))
 
-monitors_activity <- data_prepared |>
-  group_by(Source) |>
-  summarize(months = n()) |>
-  mutate(Source = str_to_upper(Source))
-
-
-monitors_activity_full <- monitors |>
-  left_join(monitors_activity, join_by(serial == Source)) 
-
-monitors_activity_full |>
-  write_xlsx("data/monitors_activity_full.xlsx")
+# monitors_activity <- data_prepared |>
+#   group_by(Source) |>
+#   summarize(months = n()) |>
+#   mutate(Source = str_to_upper(Source))
+# 
+# 
+# monitors_activity_full <- monitors |>
+#   left_join(monitors_activity, join_by(serial == Source)) 
+# 
+# monitors_activity_full |>
+#   write_xlsx("data/monitors_activity_full.xlsx")
 
 ```
 
@@ -271,6 +272,62 @@ health_long |>
   geom_col(position = position_dodge(width = 0.9)) 
 ```
 
+### Timeseries
+```{r}
+data_daily <- data_prepared |>
+  group_by(month, day) |>
+  summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+            `PM10` = mean(`PM10 (ug/m3)`),
+            `AQI` = mean(`AQI US`)) |>
+  mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+
+PA_monthly <- all_PA_data |>
+  filter(pm2.5_atm < 325) |>
+  mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
+  mutate(year = year(time_stamp),
+         month = month(time_stamp),
+         day = 15) |>
+  mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+  group_by(date) |>
+  summarize(`PM2.5` = mean(`pm2.5_atm`),
+            `PM10` = mean(`pm10.0_atm`))
+
+ggplot() +
+  geom_smooth(data = PA_monthly,
+              aes(x = date,
+                 y = PM2.5),
+              span = 0.25,
+              color = alpha('#7777cc', 0.7),
+              size = 5,
+              alpha = 0.01) +
+  geom_hline(yintercept = 9) +
+  geom_point(data = data_daily,
+             aes(x = date,
+                 y = PM2.5),
+             size = 0.6,
+             color = '#dd6644') +
+  geom_line(data = data_daily,
+            aes(x = date,
+                 y = PM2.5),
+             color = '#dd6644') +
+  geom_smooth(data = data_daily,
+              aes(x = date,
+                 y = PM2.5),
+              span = 0.2,
+             color = '#dd6644',
+             se = F) +
+  annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
+  annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
+  annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+  #scale_x_date(limits = c(as.Date("2025-02-15"), as.Date("2025-10-15"))) +
+  scale_y_continuous(limits = c(0, 40)) +
+  theme_bw()
+
+
+# group by month and day
+# summarize mean of aqi pm2.5 pm10
+# create geomsmooth
+```
 
 
 ## Maps
