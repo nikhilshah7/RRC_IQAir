@@ -319,6 +319,11 @@ ggplot() +
   annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
   annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
   annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+  labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
+       x = 'Date'
+       title = 'Particulates Over Time',
+       #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
+       ) +
   #scale_x_date(limits = c(as.Date("2025-02-15"), as.Date("2025-10-15"))) +
   scale_y_continuous(limits = c(0, 40)) +
   theme_bw()
