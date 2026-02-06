@@ -1,0 +1,655 @@
+---
+title: "Air Monitor Data Dashboard"
+format: html
+server: shiny
+---
+
+## Libraries
+
+- tidyverse handles all the data wrangling
+- readxl is for reading in the manually-edited master list of air monitors
+- tidygeocoder adds coordinates based on the addresses of monitors
+
+```{r}
+#| context: setup
+#| include: false
+#| label: Libraries
+
+library(tidyverse)
+library(readxl)
+library(tidygeocoder)
+library(writexl)
+library(rsconnect)
+```
+
+## Monitor Master List
+
+- Adds a full address column (minus zip code) which the geocoder needs to work
+- Does the geocoding to add the coordinates (it kind of just neatly adds a lat and long column which is cool)
+- Manually fills in missing coordinates
+- Makes a new, simplified dataset that can be used to join with the real datasets to add coordinates
+- Problem: it doesn't recognize all of the addresses
+  - osm method (default) can't find La Canada, Teakwood, W Orchard, Cricket
+  - census method can't find Cinnamon
+  - right now it uses census method and adds cinnamon manually
+    - 14995 Cinnamon Dr, Fontana, CA (34.03781, -117.4836)
+    - 18449 La Canada Ct, Bloomington, CA (34.06047, -117.4018)
+    - 1063 S Teakwood Ave, Bloomington, CA (34.08215, -117.3895)
+    - 1477 W Orchard Street, Bloomington, CA (34.09003, -117.4004)
+    - 19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)
+  - the problem is when new monitors get added they go to the top so Cinnamon Dr isn't always going to be the 33rd row
+  - I would like for it to figure out which row is Cinnamon and add it there
+  - Better yet using the geocoder with another method to add it to the missing rows
+
+```{r}
+#| context: setup
+#| include: false
+#| label: Monitor Master List
+
+monitors <- read_excel("data/airmonitors_addresses.xlsx", 1)
+
+monitors <- monitors |>
+  mutate(full_address = str_c(address, 
+                              city, 
+                              "CA", 
+                              sep = ", "))
+
+# Searches for coordinates for each address
+monitors <- geocode(monitors, 
+                    address = full_address, 
+                    method = 'census') 
+
+#monitors_osm <- geocode(monitors, address = full_address) |>
+  #select(monitor, serial, address, city, location, full_address, lat, long)
+
+# One of the addresses doesn't work with the census method so this fills it in manually
+monitors$lat[33] <- 34.03781
+monitors$long[33] <- -117.4836
+
+# The main data spreadsheets have the serial numbers in all lowercase so this matches it to that
+coords <- monitors |> 
+  mutate(Source = str_to_lower(serial)) |>
+  select(lat, 
+         long, 
+         location,
+         Source)
+```
+
+## Full Air Quality Dataset
+
+- Needs input of the dataset parameters (dates and frequency), then it should be able to handle the creation of the main dataset on its own
+- Recognizes the folder of all the monitor sheets in the data folder
+- Figures out how many files are in that folder (for some reason length() returns it with an L at the end so it extracts just the number)
+- Adds each small spreadsheet to one big spreadsheet
+- Imports data into RStudio
+- Adds coordinate columns
+- Should use lubridate to add a month column/whatever else if need be
+
+```{r}
+#| context: setup
+#| include: false
+#| label: Full Air Quality Dataset
+#| message: false
+#| warning: false
+
+# Unzip the IQAir data export into the RRC_IQAir/data/ folder.
+
+# Fill in the bounds of the dataset and the rate of data collection. 
+# end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
+start_date <- '01Jan25'
+end_date <-  '07Nov25'
+frequency <- 'hourly'
+data_info <- str_c(start_date, 
+                   '-',
+                   end_date, 
+                   '_', 
+                   frequency)
+
+dataset_folder <- str_c('data/IQAir_Export_raw_devices_', 
+                        data_info)
+
+# Gets the number of files in the dataset folder (so it knows how many times to run the import)
+monitor_count <- as.numeric(str_extract(length(list.files(dataset_folder)), 
+                                        '\\d+'))
+#monitor_count <- as.numeric(str_extract(length(list.files('/data')), '\\d+'))
+
+# Runs 58 times. Goes through each serial number in the master list, finds the corresponding csv file, adds it to one big table one after the other.
+import_data <- function(dataset_folder) {
+  for (i in 1:monitor_count) {
+    current_directory <- str_c(dataset_folder, 
+                               '/IQAir_raw_', 
+                               coords$Source[i], 
+                               '_', 
+                               data_info, 
+                               '.csv')
+    if (i == 1) {
+      big_table <- read_csv(current_directory)
+    } else {
+      current_table <- read_csv(current_directory)
+      big_table <- bind_rows(big_table, 
+                             current_table)
+    }
+  }
+  return(big_table)
+}
+
+data <- import_data(dataset_folder)
+
+data_prepared <- data |>
+  left_join(coords, by = 'Source') |>
+  mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
+  mutate(month = month(datetime),
+         day = day(datetime)) |>
+  mutate(color = cut(`AQI US`,
+                      labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
+                      breaks <- c(0, 50, 100, 150, 200, 300, Inf),
+                      right = T))
+
+```
+
+## Plots
+
+- Very basic timeseries scatterplots
+- TBD
+
+```{r}
+#| label: Plots
+
+data_prepared |>
+  ggplot(aes(x = month, 
+             y = `AQI US`)) +
+  geom_point() +
+  geom_smooth(se = F)
+
+data_prepared |>
+  ggplot(aes(x = month, 
+             y = `AQI US`)) +
+  geom_point() +
+  geom_line(aes(group = Source)) +
+  geom_smooth(se = F)
+
+average <- data_prepared |>
+  filter(location == 'outdoor') |>
+  summarize(x = "Inland Empire 2025",
+            average_pm25 = mean(`PM2.5 (ug/m3)`),
+            average_pm10 = mean(`PM10 (ug/m3)`),
+            average_aqi = mean(`AQI US`)) |>
+  bind_rows(data.frame(x = c('WHO Guideline', 'US 2024 Average', 'EPA Standard', 'SoCal 2025 Average'),
+                       average_pm25 = c(5, 7.08, 9.0, 10.82),
+                       average_pm10 = c(15, NA, NA, 14.18),
+                       average_aqi = c(NA, 39, NA, NA))) |>
+  mutate(average_pm25 = round(average_pm25, 2)) |>
+  mutate(x = fct_reorder(x, average_pm25))
+  
+  
+# WHO PM2.5 guideline: 5.00 micrograms/cu m
+# US Average: 7.08 
+# IE Average: 15.02
+  
+average |>
+  ggplot() +
+  geom_col(aes(x = x,
+               y = average_pm25,
+               fill = x)) +
+  geom_text(aes(x = x,
+                y = average_pm25-1,
+                label = average_pm25), 
+            size = 5) +
+  labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
+       title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
+       subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
+  scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944', '#dd6644')) + 
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        legend.position = "none")
+
+```
+
+### Timeseries
+```{r}
+data_daily <- data_prepared |>
+  group_by(month, day) |>
+  summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+            `PM10` = mean(`PM10 (ug/m3)`),
+            `AQI` = mean(`AQI US`)) |>
+  mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+
+PA_monthly <- all_PA_data |>
+  filter(pm2.5_atm < 325) |>
+  mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
+  mutate(year = year(time_stamp),
+         month = month(time_stamp),
+         day = 15) |>
+  mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+  group_by(date) |>
+  summarize(`PM2.5` = mean(`pm2.5_atm`),
+            `PM10` = mean(`pm10.0_atm`))
+
+ggplot() +
+  geom_smooth(data = PA_monthly,
+              aes(x = date,
+                 y = PM2.5),
+              span = 0.25,
+              color = alpha('#7777cc', 0.7),
+              size = 5,
+              alpha = 0.01) +
+  geom_hline(yintercept = 9) +
+  geom_point(data = data_daily,
+             aes(x = date,
+                 y = PM2.5),
+             size = 0.6,
+             color = '#dd6644') +
+  geom_line(data = data_daily,
+            aes(x = date,
+                 y = PM2.5),
+             color = '#dd6644') +
+  geom_smooth(data = data_daily,
+              aes(x = date,
+                 y = PM2.5),
+              span = 0.2,
+             color = '#dd6644',
+             se = F) +
+  annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
+  annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
+  annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+  labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
+       x = 'Date'
+       title = 'Particulates Over Time',
+       #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
+       ) +
+  #scale_x_date(limits = c(as.Date("2025-02-15"), as.Date("2025-10-15"))) +
+  scale_y_continuous(limits = c(0, 40)) +
+  theme_bw()
+
+
+# group by month and day
+# summarize mean of aqi pm2.5 pm10
+# create geomsmooth
+```
+
+
+## Maps
+
+### To Do
+- Label each marker with air quality
+- Create a shiny app
+- Add a time slider to be able to see the data change over time
+- Use the API to have it update in real time
+- Host a shiny app online
+
+```{r}
+library(leaflet)
+library(leaflet.extras)
+library(sf)
+
+colors <- c('green', 'yellow', 'orange', 'red', 'purple', 'maroon')
+#bins <- c(0, 50, 100, 150, 200, 300)
+
+
+WH.url <- 'https://raw.githubusercontent.com/RadicalResearchLLC/WarehouseMap/main/WarehouseCITY/geoJSON/comboFinal.geojson'
+
+warehouses <- st_read(WH.url) |>  
+  st_transform(crs = 4326)
+
+aqi_pal = colorFactor(colors, domain = data_prepared$color)
+
+leaflet(data_prepared) |>
+  addTiles() |>
+  addLabelOnlyMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(`AQI US`),
+    labelOptions = labelOptions(
+      noHide = TRUE,
+      direction = "center",
+      textOnly = FALSE,
+      style = list(
+        "color" = "white",
+        "background" = '#dd9944',  
+        "border-radius" = "50%",
+        "text-align" = "center"
+      )))
+
+'#dd9944'
+
+data_prepared |>
+  filter(location == 'outdoor') |>
+  leaflet() |>
+  addTiles() |>
+  addCircleMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(`AQI US`),
+    color = ~aqi_pal(color)) |>
+  addLabelOnlyMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(`AQI US`),
+    labelOptions = labelOptions(
+      noHide = TRUE,
+      direction = "center",
+      textOnly = T,
+      style = list(
+        "color" = ~color,
+        #"background" = '#dd9944',  
+        "border-radius" = "50%",
+        "text-align" = "center"
+      ))) |>
+  addPolygons(data = warehouses,
+              color = 'black',
+              weight = 1)
+
+
+```
+
+```{r}
+## Summary stats and some plots
+library(psych)
+
+#table(data_prepared$month) #July through September are most common months 
+#summary(filter(data_prepared, month >= 7 & month <=9))
+
+describeBy(data_prepared[5], group = data_prepared$month, mat = T)
+
+## Mean AQI US and PM2.5 per month per location (indoor or outdoor)
+stats <- describeBy(data_prepared[c(5,7)], 
+                    list(data_prepared$month, 
+                         data_prepared$location), 
+                    mat = T)
+
+stats_clean <- stats |>
+  select(month = group1,
+         location = group2,
+         variable = vars,
+         mean) |>
+  mutate(variable = recode(
+    variable, 
+    `1` = "AQI US mean",
+    `2` = "PM2.5 mean")) 
+    
+stats_wide <- stats_clean |>
+  pivot_wider(
+    names_from = variable,
+    values_from = mean, 
+  )
+
+
+stats_wide |> 
+  ggplot(aes(x = month,
+             y = `AQI US mean`,
+             fill = location)) + 
+  geom_col(position = "dodge") 
+
+stats_wide |> 
+  ggplot(aes(x = month,
+             y = `PM2.5 mean`,
+             fill = location)) + 
+  geom_col(position = "dodge") 
+           
+```
+Sorting the sites by location to then get summary stats for our 11/15 data sharing! 
+```{r}
+
+addressandserialnumbers <- monitors %>%
+  select(serial,city)%>%
+  rename(Source = serial)
+
+data_prepared <- data_prepared %>%
+  mutate(Source = trimws(toupper(as.character(Source))))
+
+addressandserialnumbers <- addressandserialnumbers %>%
+  mutate(Source = trimws(toupper(as.character(Source))))
+
+
+monitorswithcity <- addressandserialnumbers %>%
+  left_join(data_prepared, by = "Source")
+
+monitorswithcity <- monitorswithcity %>%
+  filter(!is.na(city))
+
+ggplot(
+  data=monitorswithcity,
+  mapping = aes(x=city,y=`AQI US`)) + 
+  geom_boxplot(mapping=aes(),alpha=0.6) +
+  labs(x = "City",y="AQI US")+
+  theme_minimal()
+
+ggplot(
+  data=monitorswithcity,
+  mapping = aes(x=city,y=`PM2.5 (ug/m3)`)) + 
+  geom_boxplot(mapping=aes(),alpha=0.6) +
+  labs(x = "City",y="PM 2.5 (ug/m3)")+
+  theme_minimal()
+
+ggplot(data=monitorswithcity,mapping=aes(x=city,y=`PM10 (ug/m3)`))+
+  geom_boxplot(mapping=aes(),alpha=0.6)+
+   labs(x = "City",y="PM10 (ug/m3)")+
+  theme_minimal()
+
+ggplot(data=monitorswithcity,mapping=aes(x=city,y=`CO2 (ppm)`))+
+  geom_boxplot(mapping=aes(),alpha=0.6)+
+   labs(x = "City",y="CO2 (ppm)")+
+  theme_minimal()
+
+citysummary <- monitorswithcity %>%
+  group_by(city) %>%
+  summarise(across(
+    where(is.numeric),
+    list(
+       mean = ~mean(.x, na.rm = TRUE),
+      sd   = ~sd(.x, na.rm = TRUE),
+      min  = ~min(.x, na.rm = TRUE),
+      max  = ~max(.x, na.rm = TRUE)
+    ),
+    .names = "{.col}_{.fn}"
+  ))
+#what is the NA output?? ask Nikhil about look at the original address doc, am I missing a city for about 3 monitors?, unidentified monitors took out of the data so its more easily intepretable 
+
+ggplot(data=citysummary,mapping=aes(y=`AQI US_mean`))+
+  geom_point(mapping=aes(color=city),size=5)
+
+```
+Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly
+```{r}
+
+
+
+
+```
+
+Purple Air Data! Each monitor is a separate sheet so merging them all 
+
+```{r}
+library(readr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+
+PA_dataset_folder <- 'data/Purple_Air_Data_11_8'
+
+output_file <- 'data/PA_Combined.csv'
+
+all_PA_files <- list.files(PA_dataset_folder, pattern = "\\.csv$", full.names = TRUE)
+
+all_PA_data <- lapply(all_PA_files, function(file) {
+  sensor_id <- str_extract(basename(file), "^\\d+")
+  df <- suppressMessages(read_csv(file, show_col_types = FALSE))
+  if (nrow(df) == 0) return(NULL)
+  df <- df %>%
+    mutate(
+      time_stamp = as.POSIXct(time_stamp, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC"),
+      SensorID = sensor_id
+    )
+  return(df)
+}) |> bind_rows()
+
+write_csv(all_PA_data, output_file)
+all_PA_data <- read.csv(output_file)
+
+
+#nrow(all_PA_data)
+
+## We chose 325 as the cut off because PM2.5 325 correlates to AQI 500 according to AirNow AQI concentration calculator. AQI 500 is very high, unhealthy air quality index
+under_325_pm2.5 <- all_PA_data |> filter(pm2.5_atm <325)
+average_PM25 <- mean(under_325_pm2.5$pm2.5_atm) # 10.82
+summary(under_325_pm2.5$pm2.5_atm) # median is 8.7
+
+## PM10 of 604 correlates to AQI 500
+under_604_pm10 <- all_PA_data |> filter(pm10.0_atm <604)
+average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
+summary(under_604_pm10$pm10.0_atm) # median is 10.2
+```
+
+```{r}
+# UI
+
+available_variables <- c()
+
+available_Yvariables <- c()
+
+available_sites <- c()
+
+available_timescales <- c()
+
+available_timeseries <- c()
+
+navset_card_underline(
+  nav_panel("", 
+            card(card_body(
+                "
+                Description
+                "
+            )),
+            layout_sidebar(
+              sidebar = sidebarPanel(
+                accordion(
+                  open = c("Variables"),
+                  accordion_panel(
+                    "Variables",
+                    radioButtons("chosenVariable", "X", available_variables[-5], selected = ""),
+                    radioButtons("chosenYVariable", "Y", available_Yvariables, selected = "")
+                  ),
+                  accordion_panel(
+                    "Site 1",
+                    radioButtons("chosenSite1", "Site 1:", available_sites, selected = "")
+                  ), 
+                  accordion_panel(
+                    "Site 2",
+                    radioButtons("chosenSite2", "Site 2:", available_sites, selected = "")
+                  ),
+                  accordion_panel(
+                    "Timescales",
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                  ))),
+              accordion(
+                accordion_panel(
+                  "Title",
+                  layout_columns(
+                      plotOutput("PlotName1"),
+                      plotOutput("PlotName2")
+                )),
+                accordion_panel(
+                  "Title",
+                  plotOutput("PlotName3")
+                )
+              )))
+)
+```
+
+```{r}
+#| context: server
+
+variables_names_to_ids <- c("new" = "old")
+variables_ids_to_units <- c()
+
+data <- reactive({
+  if (input$chosenTimescale == "Weekly"){
+    data <- WW_data
+  } else if (input$chosenTimescale == "Daily"){
+    data <- DD_data
+  } else {
+    data <- MM_data
+  }
+  return(data)
+})
+
+Xscale <- reactive({
+  data <- data()
+  variable_id <- variables_names_to_ids[input$chosenVariable]
+  min_val <- min(data[,variable_id], na.rm = T)
+  max_val <- max(data[,variable_id], na.rm = T)
+  range_val <- range(data[,variable_id], na.rm = T)[1] - range(data[,variable_id], na.rm = T)[2] 
+  c(min_val - 0.1*range_val, max_val + .1*range_val)
+})
+
+Yscale <- reactive({
+  data <- data()
+  yval <- variables_names_to_ids[input$chosenYVariable]
+  min_val <- min(data[,yval], na.rm = T)
+  max_val <- max(data[,yval], na.rm = T)
+  range_val <- range(data[,yval], na.rm = T)[1] - range(data[,yval], na.rm = T)[2] 
+  c(min_val - 0.1*range_val, max_val + .1*range_val)
+})
+
+title_width <- 30
+
+output$PlotName1 <- renderPlot({
+  
+  variable_id <- variables_names_to_ids[input$chosenVariable]
+  Yvariable_id <- variables_names_to_ids[input$chosenYVariable]
+  site_id = sites_names_to_ids[input$chosenSite1]
+  
+  
+  siteData <- data() 
+  siteData <- siteData |> filter(Site == site_id) |> 
+                       filter_variables(0.8, c(Yvariable_id, variable_id))
+  
+  xlims <- Xscale()
+  ylims <- Yscale()
+  
+  siteData |> ggplot(aes(x = !!sym(variable_id), y = !!sym(Yvariable_id))) +
+            xlim(xlims[1],xlims[2]) + ylim(ylims[1],ylims[2]) +
+            geom_point(alpha = 0.7, color = site_colors[site_id]) + 
+            geom_smooth(se = F, color = "black", method = "loess", span = span_dist) + scale_alpha(guide = "none") +
+            labs(x = paste(input$chosenVariable, variables_ids_to_units[variable_id]), 
+                 y = paste(input$chosenYVariable, variables_ids_to_units[Yvariable_id]),
+                 title = stringr::str_wrap(paste("Relationship between", input$chosenVariable, "and", input$chosenYVariable,
+                               "at the", input$chosenSite1, "Site"), width = title_width)) + theme_classic()
+})
+
+output$PlotName2 <- renderPlot({
+
+  variable_id <- variables_names_to_ids[input$chosenVariable]
+  Yvariable_id <- variables_names_to_ids[input$chosenYVariable]
+  site_id = sites_names_to_ids[input$chosenSite2]
+  
+  siteData <- data() |> filter(Site == site_id) |> 
+                       filter_variables(0.8, c(Yvariable_id, variable_id))
+  
+  xlims <- Xscale()
+  ylims <- Yscale()
+  
+  siteData |> ggplot(aes(x = !!sym(variable_id), y = !!sym(Yvariable_id))) +
+            xlim(xlims[1],xlims[2]) + ylim(ylims[1],ylims[2]) +
+            geom_point(alpha = 0.7, color = site_colors[site_id]) + 
+            geom_smooth(se = F, color = "black", method = "loess", span = span_dist) + scale_alpha(guide = "none") +
+            labs(x = paste(input$chosenVariable, variables_ids_to_units[variable_id]), 
+                 y = paste(input$chosenYVariable, variables_ids_to_units[Yvariable_id]),
+                 title = stringr::str_wrap(paste("Relationship between", input$chosenVariable, "and", input$chosenYVariable,
+                               "at the", input$chosenSite2, "Site"), width = title_width)) + theme_classic()
+})
+
+output$PlotName3 <- renderPlot({
+
+  variable_id <- variables_names_to_ids[input$chosenVariable]
+  Yvariable_id <- variables_names_to_ids[input$chosenYVariable]
+  
+  variableData <- data() |> filter_variables(0.8, c(Yvariable_id, variable_id))
+  
+  variableData |> ggplot(aes(x = !!sym(variable_id), y = !!sym(Yvariable_id), color = Site)) +
+            geom_smooth(se = T, alpha = 0.2, method = "loess", span = span_dist) + scale_alpha(guide = "none") +
+            scale_color_manual(labels = sites_ids_to_names, values = site_colors) +
+            labs(x = paste(input$chosenVariable, variables_ids_to_units[variable_id]), 
+                 y = paste(input$chosenYVariable, variables_ids_to_units[Yvariable_id]),
+                 title = stringr::str_wrap(paste("Relationship between", input$chosenVariable, "and ",input$chosenYVariable," at all sites"), width = title_width)) +
+    theme_classic()
+})
+
+```
