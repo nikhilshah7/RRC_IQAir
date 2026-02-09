@@ -155,18 +155,18 @@ data_prepared <- data |>
 ```{r}
 #| label: Plots
 
-data_prepared |>
-  ggplot(aes(x = month, 
-             y = `AQI US`)) +
-  geom_point() +
-  geom_smooth(se = F)
-
-data_prepared |>
-  ggplot(aes(x = month, 
-             y = `AQI US`)) +
-  geom_point() +
-  geom_line(aes(group = Source)) +
-  geom_smooth(se = F)
+#data_prepared |>
+#  ggplot(aes(x = month, 
+#             y = `AQI US`)) +
+#  geom_point() +
+#  geom_smooth(se = F)
+#
+#data_prepared |>
+#  ggplot(aes(x = month, 
+#             y = `AQI US`)) +
+#  geom_point() +
+#  geom_line(aes(group = Source)) +
+#  geom_smooth(se = F)
 
 average <- data_prepared |>
   filter(location == 'outdoor') |>
@@ -186,7 +186,7 @@ average <- data_prepared |>
 # US Average: 7.08 
 # IE Average: 15.02
   
-average |>
+bar <- average |>
   ggplot() +
   geom_col(aes(x = x,
                y = average_pm25,
@@ -207,6 +207,8 @@ average |>
 
 ### Timeseries
 ```{r}
+#| eval: false
+
 data_daily <- data_prepared |>
   group_by(month, day) |>
   summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
@@ -225,7 +227,7 @@ PA_monthly <- all_PA_data |>
   summarize(`PM2.5` = mean(`pm2.5_atm`),
             `PM10` = mean(`pm10.0_atm`))
 
-ggplot() +
+timeseries <- ggplot() +
   geom_smooth(data = PA_monthly,
               aes(x = date,
                  y = PM2.5),
@@ -253,7 +255,7 @@ ggplot() +
   annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
   annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
   labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
-       x = 'Date'
+       x = 'Date',
        title = 'Particulates Over Time',
        #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
        ) +
@@ -278,6 +280,8 @@ ggplot() +
 - Host a shiny app online
 
 ```{r}
+#| eval: false
+
 library(leaflet)
 library(leaflet.extras)
 library(sf)
@@ -340,6 +344,8 @@ data_prepared |>
 ```
 
 ```{r}
+#| eval: false
+
 ## Summary stats and some plots
 library(psych)
 
@@ -386,6 +392,7 @@ stats_wide |>
 ```
 Sorting the sites by location to then get summary stats for our 11/15 data sharing! 
 ```{r}
+#| eval: false
 
 addressandserialnumbers <- monitors %>%
   select(serial,city)%>%
@@ -403,6 +410,11 @@ monitorswithcity <- addressandserialnumbers %>%
 
 monitorswithcity <- monitorswithcity %>%
   filter(!is.na(city))
+```
+
+
+```{r}
+#| eval: false
 
 ggplot(
   data=monitorswithcity,
@@ -457,30 +469,33 @@ Starting a new chunk of data visualizations by month from the data! (possibly tr
 Purple Air Data! Each monitor is a separate sheet so merging them all 
 
 ```{r}
+#| eval: false
+
 library(readr)
 library(dplyr)
 library(stringr)
 library(lubridate)
 
-PA_dataset_folder <- 'data/Purple_Air_Data_11_8'
+#PA_dataset_folder <- 'data/Purple_Air_Data_11_8'
 
-output_file <- 'data/PA_Combined.csv'
+#output_file <- 'data/PA_Combined.csv'
 
-all_PA_files <- list.files(PA_dataset_folder, pattern = "\\.csv$", full.names = TRUE)
+#all_PA_files <- list.files(PA_dataset_folder, pattern = "\\.csv$", full.names = TRUE)
 
-all_PA_data <- lapply(all_PA_files, function(file) {
-  sensor_id <- str_extract(basename(file), "^\\d+")
-  df <- suppressMessages(read_csv(file, show_col_types = FALSE))
-  if (nrow(df) == 0) return(NULL)
-  df <- df %>%
-    mutate(
-      time_stamp = as.POSIXct(time_stamp, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC"),
-      SensorID = sensor_id
-    )
-  return(df)
-}) |> bind_rows()
+#all_PA_data <- lapply(all_PA_files, function(file) {
+#  sensor_id <- str_extract(basename(file), "^\\d+")
+#  df <- suppressMessages(read_csv(file, show_col_types = FALSE))
+#  if (nrow(df) == 0) return(NULL)
+#  df <- df %>%
+#    mutate(
+#      time_stamp = as.POSIXct(time_stamp, format = "%Y-%m-%dT%H:%M:%OS", tz = "UTC"),
+#      SensorID = sensor_id
+#    )
+#  return(df)
+#}) |> bind_rows()
 
 write_csv(all_PA_data, output_file)
+
 all_PA_data <- read.csv(output_file)
 
 
@@ -500,13 +515,15 @@ summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```{r}
 # UI
 
+library(bslib)
+
 available_variables <- c()
 
 available_Yvariables <- c()
 
-available_sites <- c()
+available_selections <- c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US 2024 Average", "SoCal 2025 Average")
 
-available_timescales <- c()
+available_timescales <- c("Daily", "Weekly", "Monthly")
 
 available_timeseries <- c()
 
@@ -520,34 +537,16 @@ navset_card_underline(
             layout_sidebar(
               sidebar = sidebarPanel(
                 accordion(
-                  open = c("Variables"),
-                  accordion_panel(
-                    "Variables",
-                    radioButtons("chosenVariable", "X", available_variables[-5], selected = ""),
-                    radioButtons("chosenYVariable", "Y", available_Yvariables, selected = "")
-                  ),
-                  accordion_panel(
-                    "Site 1",
-                    radioButtons("chosenSite1", "Site 1:", available_sites, selected = "")
-                  ), 
-                  accordion_panel(
-                    "Site 2",
-                    radioButtons("chosenSite2", "Site 2:", available_sites, selected = "")
-                  ),
+                  open = c("Locations"),
+                  checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US 2024 Average", "SoCal 2025 Average")),
                   accordion_panel(
                     "Timescales",
                     radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
                   ))),
               accordion(
                 accordion_panel(
-                  "Title",
-                  layout_columns(
-                      plotOutput("PlotName1"),
-                      plotOutput("PlotName2")
-                )),
-                accordion_panel(
-                  "Title",
-                  plotOutput("PlotName3")
+                  "PM2.5",
+                  plotOutput("barchart")
                 )
               )))
 )
@@ -570,86 +569,45 @@ data <- reactive({
   return(data)
 })
 
-Xscale <- reactive({
-  data <- data()
-  variable_id <- variables_names_to_ids[input$chosenVariable]
-  min_val <- min(data[,variable_id], na.rm = T)
-  max_val <- max(data[,variable_id], na.rm = T)
-  range_val <- range(data[,variable_id], na.rm = T)[1] - range(data[,variable_id], na.rm = T)[2] 
-  c(min_val - 0.1*range_val, max_val + .1*range_val)
-})
 
-Yscale <- reactive({
-  data <- data()
-  yval <- variables_names_to_ids[input$chosenYVariable]
-  min_val <- min(data[,yval], na.rm = T)
-  max_val <- max(data[,yval], na.rm = T)
-  range_val <- range(data[,yval], na.rm = T)[1] - range(data[,yval], na.rm = T)[2] 
-  c(min_val - 0.1*range_val, max_val + .1*range_val)
-})
+bar <- average |>
+  ggplot() +
+  geom_col(aes(x = x,
+               y = average_pm25,
+               fill = x)) +
+  geom_text(aes(x = x,
+                y = average_pm25-1,
+                label = average_pm25), 
+            size = 5) +
+  labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
+       title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
+       subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
+  scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944', '#dd6644')) + 
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        legend.position = "none")
+
 
 title_width <- 30
 
-output$PlotName1 <- renderPlot({
+output$barchart <- renderPlot({
   
-  variable_id <- variables_names_to_ids[input$chosenVariable]
-  Yvariable_id <- variables_names_to_ids[input$chosenYVariable]
-  site_id = sites_names_to_ids[input$chosenSite1]
-  
-  
-  siteData <- data() 
-  siteData <- siteData |> filter(Site == site_id) |> 
-                       filter_variables(0.8, c(Yvariable_id, variable_id))
-  
-  xlims <- Xscale()
-  ylims <- Yscale()
-  
-  siteData |> ggplot(aes(x = !!sym(variable_id), y = !!sym(Yvariable_id))) +
-            xlim(xlims[1],xlims[2]) + ylim(ylims[1],ylims[2]) +
-            geom_point(alpha = 0.7, color = site_colors[site_id]) + 
-            geom_smooth(se = F, color = "black", method = "loess", span = span_dist) + scale_alpha(guide = "none") +
-            labs(x = paste(input$chosenVariable, variables_ids_to_units[variable_id]), 
-                 y = paste(input$chosenYVariable, variables_ids_to_units[Yvariable_id]),
-                 title = stringr::str_wrap(paste("Relationship between", input$chosenVariable, "and", input$chosenYVariable,
-                               "at the", input$chosenSite1, "Site"), width = title_width)) + theme_classic()
+  average |>
+    filter(x %in% input$chosenSelection) |>
+    ggplot() +
+    geom_col(aes(x = x,
+               y = average_pm25,
+               fill = x)) +
+    geom_text(aes(x = x,
+                y = average_pm25-1,
+                label = average_pm25), 
+            size = 5) +
+    labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
+       title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
+       subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
+    scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944', '#dd6644')) + 
+    theme_bw() +
+    theme(axis.title.x = element_blank(),
+        legend.position = "none")
 })
-
-output$PlotName2 <- renderPlot({
-
-  variable_id <- variables_names_to_ids[input$chosenVariable]
-  Yvariable_id <- variables_names_to_ids[input$chosenYVariable]
-  site_id = sites_names_to_ids[input$chosenSite2]
-  
-  siteData <- data() |> filter(Site == site_id) |> 
-                       filter_variables(0.8, c(Yvariable_id, variable_id))
-  
-  xlims <- Xscale()
-  ylims <- Yscale()
-  
-  siteData |> ggplot(aes(x = !!sym(variable_id), y = !!sym(Yvariable_id))) +
-            xlim(xlims[1],xlims[2]) + ylim(ylims[1],ylims[2]) +
-            geom_point(alpha = 0.7, color = site_colors[site_id]) + 
-            geom_smooth(se = F, color = "black", method = "loess", span = span_dist) + scale_alpha(guide = "none") +
-            labs(x = paste(input$chosenVariable, variables_ids_to_units[variable_id]), 
-                 y = paste(input$chosenYVariable, variables_ids_to_units[Yvariable_id]),
-                 title = stringr::str_wrap(paste("Relationship between", input$chosenVariable, "and", input$chosenYVariable,
-                               "at the", input$chosenSite2, "Site"), width = title_width)) + theme_classic()
-})
-
-output$PlotName3 <- renderPlot({
-
-  variable_id <- variables_names_to_ids[input$chosenVariable]
-  Yvariable_id <- variables_names_to_ids[input$chosenYVariable]
-  
-  variableData <- data() |> filter_variables(0.8, c(Yvariable_id, variable_id))
-  
-  variableData |> ggplot(aes(x = !!sym(variable_id), y = !!sym(Yvariable_id), color = Site)) +
-            geom_smooth(se = T, alpha = 0.2, method = "loess", span = span_dist) + scale_alpha(guide = "none") +
-            scale_color_manual(labels = sites_ids_to_names, values = site_colors) +
-            labs(x = paste(input$chosenVariable, variables_ids_to_units[variable_id]), 
-                 y = paste(input$chosenYVariable, variables_ids_to_units[Yvariable_id]),
-                 title = stringr::str_wrap(paste("Relationship between", input$chosenVariable, "and ",input$chosenYVariable," at all sites"), width = title_width)) +
-    theme_classic()
-})
-
 ```
