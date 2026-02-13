@@ -180,8 +180,8 @@ average <- data_prepared |>
                        average_aqi = c(NA, 39, NA, NA))) |>
   mutate(average_pm25 = round(average_pm25, 2)) |>
   mutate(x = fct_reorder(x, average_pm25))
-  
-  
+
+
 # WHO PM2.5 guideline: 5.00 micrograms/cu m
 # US Average: 7.08 
 # IE Average: 15.02
@@ -202,6 +202,7 @@ bar <- average |>
   theme_bw() +
   theme(axis.title.x = element_blank(),
         legend.position = "none")
+
 
 ```
 
@@ -461,9 +462,6 @@ ggplot(data=citysummary,mapping=aes(y=`AQI US_mean`))+
 Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly
 ```{r}
 
-
-
-
 ```
 
 Purple Air Data! Each monitor is a separate sheet so merging them all 
@@ -514,6 +512,7 @@ summary(under_604_pm10$pm10.0_atm) # median is 10.2
 
 ```{r}
 # UI
+#| context: ui
 
 library(bslib)
 
@@ -528,7 +527,7 @@ available_timescales <- c("Daily", "Weekly", "Monthly")
 available_timeseries <- c()
 
 navset_card_underline(
-  nav_panel("", 
+  nav_panel("",
             card(card_body(
                 "
                 Description
@@ -550,6 +549,7 @@ navset_card_underline(
                 )
               )))
 )
+
 ```
 
 ```{r}
@@ -567,47 +567,58 @@ data <- reactive({
     data <- MM_data
   }
   return(data)
-})
+  })
 
-
-bar <- average |>
-  ggplot() +
-  geom_col(aes(x = x,
-               y = average_pm25,
-               fill = x)) +
-  geom_text(aes(x = x,
-                y = average_pm25-1,
-                label = average_pm25), 
-            size = 5) +
-  labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
-       title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
-       subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
-  scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944', '#dd6644')) + 
-  theme_bw() +
-  theme(axis.title.x = element_blank(),
-        legend.position = "none")
-
-
-title_width <- 30
-
-output$barchart <- renderPlot({
+pm25_colors <- c(
+  "WHO Guideline"        = "#55cc22",
+  "US 2024 Average"     = "#eedd44",
+  "EPA Standard"        = "#e9bb44",
+  "SoCal 2025 Average"  = "#dd9944",
+  "Inland Empire 2025"  = "#dd6644"
+)
   
-  average |>
+output$barchart <- renderPlot({
+  req(input$chosenSelection)
+  
+    average_data <- data_prepared |>
+      filter(location == "outdoor") |>
+      summarize(
+        x = "Inland Empire 2025",
+        average_pm25 = mean(`PM2.5 (ug/m3)`, na.rm = TRUE)
+      ) |>
+      bind_rows(
+        data.frame(
+          x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
+          average_pm25 = c(5, 7.08, 9.0, 10.82)
+        )
+      ) |>
+      mutate(
+        average_pm25 = round(average_pm25, 2)
+        ) |>
     filter(x %in% input$chosenSelection) |>
-    ggplot() +
-    geom_col(aes(x = x,
-               y = average_pm25,
-               fill = x)) +
-    geom_text(aes(x = x,
-                y = average_pm25-1,
-                label = average_pm25), 
-            size = 5) +
-    labs(y = bquote('Annual PM2.5 Average' ~(mu*g/m^3)),
-       title = 'Particulates in the Inland Empire are 3 Times the Healthy Amount',
-       subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards') +
-    scale_fill_manual(values = c('#55cc22', '#eedd44', '#e9bb44', '#dd9944', '#dd6644')) + 
-    theme_bw() +
-    theme(axis.title.x = element_blank(),
-        legend.position = "none")
-})
+    mutate(x = fct_reorder(x, average_pm25)
+      )
+
+    ggplot(average_data, aes(x = x, y = average_pm25, fill = x)) +
+      geom_col() +
+      geom_text(
+        aes(label = average_pm25),
+        vjust = -0.3,
+        size = 5
+      ) +
+      labs(
+        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3)),
+        title = "Particulates in the Inland Empire are 3× the Healthy Amount",
+        subtitle = "IQAir Monitor Data, Public Health & Environmental Standards"
+      ) +
+      scale_fill_manual(values = pm25_colors, drop = FALSE
+      ) +
+      theme_bw() +
+      theme(
+        axis.title.x = element_blank(),
+        legend.position = "none"
+      )
+  })
+
 ```
+
