@@ -510,6 +510,31 @@ average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
 summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
+
+```{r}
+    output_file <- 'data/PA_Combined.csv'
+
+    all_PA_data <- read.csv(output_file)
+
+    data_daily <- data_prepared |>
+      group_by(month, day) |>
+      summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                `PM10` = mean(`PM10 (ug/m3)`),
+                `AQI` = mean(`AQI US`)) |>
+      mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+
+    PA_monthly <- all_PA_data |>
+      filter(pm2.5_atm < 325) |>
+      mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
+      mutate(year = year(time_stamp),
+            month = month(time_stamp),
+            day = 15) |>
+      mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+      group_by(date) |>
+      summarize(`PM2.5` = mean(`pm2.5_atm`),
+                `PM10` = mean(`pm10.0_atm`))
+```
+
 ```{r}
 # UI
 #| context: ui
@@ -527,10 +552,10 @@ available_timescales <- c("Daily", "Weekly", "Monthly")
 available_timeseries <- c()
 
 navset_card_underline(
-  nav_panel("",
+  nav_panel("PM2.5 Air Quality",
             card(card_body(
                 "
-                Description
+                This chart compares particulate matter levels from a few subsets of air quality monitors, alongside a couple of health standards from government bodies. While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
                 "
             )),
             layout_sidebar(
@@ -547,6 +572,32 @@ navset_card_underline(
                   "PM2.5",
                   plotOutput("barchart")
                 )
+              ))),
+  nav_panel("Air Quality Over Time",
+            card(card_body(
+                "
+                Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy.
+                "
+            )),
+            layout_sidebar(
+              sidebar = sidebarPanel(
+                accordion(
+                  open = c("Dates"),
+                  sliderInput( 
+                    "daterange", "Dates:", 
+                    min = 20100, max = 20400, 
+                    value = c(20100, 20400) 
+                  ),
+                  dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
+                  accordion_panel(
+                    "Timescales",
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                  ))),
+              accordion(
+                accordion_panel(
+                  "PM2.5",
+                  plotOutput("timeseries")
+                )
               )))
 )
 
@@ -557,17 +608,6 @@ navset_card_underline(
 
 variables_names_to_ids <- c("new" = "old")
 variables_ids_to_units <- c()
-
-data <- reactive({
-  if (input$chosenTimescale == "Weekly"){
-    data <- WW_data
-  } else if (input$chosenTimescale == "Daily"){
-    data <- DD_data
-  } else {
-    data <- MM_data
-  }
-  return(data)
-  })
 
 pm25_colors <- c(
   "WHO Guideline"        = "#55cc22",
@@ -620,5 +660,83 @@ output$barchart <- renderPlot({
       )
   })
 
+```
+
+
+```{r}
+#| context: server
+
+data <- reactive({
+  if (input$chosenTimescale == "Hourly"){
+    data <- data_hourly
+  } else if (input$chosenTimescale == "Daily"){
+    data <- data_daily
+  } else {
+    data <- data_monthly
+  }
+  return(data)
+  })
+
+output$timeseries <- renderPlot({
+  req(input$chosenSelection)
+
+    output_file <- 'data/PA_Combined.csv'
+
+    all_PA_data <- read.csv(output_file)
+
+    data_daily <- data_prepared |>
+      group_by(month, day) |>
+      summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                `PM10` = mean(`PM10 (ug/m3)`),
+                `AQI` = mean(`AQI US`)) |>
+      mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+
+    PA_monthly <- all_PA_data |>
+      filter(pm2.5_atm < 325) |>
+      mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
+      mutate(year = year(time_stamp),
+            month = month(time_stamp),
+            day = 15) |>
+      mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+      group_by(date) |>
+      summarize(`PM2.5` = mean(`pm2.5_atm`),
+                `PM10` = mean(`pm10.0_atm`))
+
+    ggplot() +
+      geom_smooth(data = PA_monthly,
+                  aes(x = date,
+                      y = PM2.5),
+                  span = 0.25,
+                  color = alpha('#7777cc', 0.7),
+                  size = 5,
+                  alpha = 0.01) +
+      geom_hline(yintercept = 9) +
+      geom_point(data = data_daily,
+                 aes(x = date,
+                     y = PM2.5),
+                 size = 0.6,
+                 color = '#dd6644') +
+      geom_line(data = data_daily,
+                aes(x = date,
+                     y = PM2.5),
+                 color = '#dd6644') +
+      geom_smooth(data = data_daily,
+                  aes(x = date,
+                     y = PM2.5),
+                  span = 0.2,
+                 color = '#dd6644',
+                 se = F) +
+      #annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
+      #annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
+      #annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+      labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
+           x = 'Date',
+           title = 'Particulates Over Time',
+           #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
+           ) +
+      scale_x_date(limits = c(input$realdaterange[1], input$realdaterange[2])) +
+      scale_y_continuous(limits = c(0, 40)) +
+      theme_bw()
+})
 ```
 
