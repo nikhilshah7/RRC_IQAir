@@ -399,6 +399,7 @@ addressandserialnumbers <- monitors %>%
   select(serial,city)%>%
   rename(Source = serial)
 
+
 data_prepared <- data_prepared %>%
   mutate(Source = trimws(toupper(as.character(Source))))
 
@@ -533,6 +534,7 @@ summary(under_604_pm10$pm10.0_atm) # median is 10.2
       group_by(date) |>
       summarize(`PM2.5` = mean(`pm2.5_atm`),
                 `PM10` = mean(`pm10.0_atm`))
+    
 ```
 
 ```{r}
@@ -550,6 +552,8 @@ available_selections <- c("Inland Empire 2025", "WHO Guideline", "EPA Standard",
 available_timescales <- c("Daily", "Weekly", "Monthly")
 
 available_timeseries <- c()
+
+available_cities <- c("Bloomington", "Fontana", "Rialto")
 
 navset_card_underline(
   nav_panel("PM2.5 Air Quality",
@@ -571,6 +575,10 @@ navset_card_underline(
                 accordion_panel(
                   "PM2.5",
                   plotOutput("barchart")
+                ),
+                accordion_panel(
+                  "AQI",
+                  plotOutput("barchartAQI")
                 )
               ))),
   nav_panel("Air Quality Over Time",
@@ -583,11 +591,9 @@ navset_card_underline(
               sidebar = sidebarPanel(
                 accordion(
                   open = c("Dates"),
-                  sliderInput( 
-                    "daterange", "Dates:", 
-                    min = 20100, max = 20400, 
-                    value = c(20100, 20400) 
-                  ),
+                  sliderInput(
+                    "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
+                    ),
                   dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
                   accordion_panel(
                     "Timescales",
@@ -597,6 +603,47 @@ navset_card_underline(
                 accordion_panel(
                   "PM2.5",
                   plotOutput("timeseries")
+                )
+              ))),
+  nav_panel("Air Quality by City",
+            card(card_body(
+                "
+Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
+                "
+            )),
+            layout_sidebar(
+              sidebar = sidebarPanel(
+                accordion(
+                  open = c("Cities"),
+                  checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
+                  accordion_panel(
+                    "Timescales",
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                  ))),
+              accordion(
+                accordion_panel(
+                  "PM2.5",
+                  plotOutput("citychart")
+                )
+              ))),
+  nav_panel("Indoor vs Outdoor",
+            card(card_body(
+                "
+Indoor vs outdoor PM2.5 by month"
+            )),
+            layout_sidebar(
+              sidebar = sidebarPanel(
+                accordion(
+                  open = c("Cities"),
+                  checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
+                  accordion_panel(
+                    "Timescales",
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                  ))),
+              accordion(
+                accordion_panel(
+                  "PM2.5",
+                  plotOutput("in_out_chart")
                 )
               )))
 )
@@ -616,10 +663,10 @@ pm25_colors <- c(
   "SoCal 2025 Average"  = "#dd9944",
   "Inland Empire 2025"  = "#dd6644"
 )
-  
+
 output$barchart <- renderPlot({
   req(input$chosenSelection)
-  
+
     average_data <- data_prepared |>
       filter(location == "outdoor") |>
       summarize(
@@ -660,6 +707,53 @@ output$barchart <- renderPlot({
       )
   })
 
+
+#For AQI barchart
+
+output$barchartAQI <- renderPlot({
+  req(input$chosenSelection)
+
+    average_data_AQI <- data_prepared |>
+      filter(location == "outdoor") |>
+      summarize(
+        x = "Inland Empire 2025",
+        average_aqi = mean(`AQI US`, na.rm = TRUE)
+      ) |>
+      bind_rows(
+        data.frame(
+          x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
+          average_aqi = c(5, 39, 50, 10.82) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
+        )
+      ) |>
+      mutate(
+        average_aqi = round(average_aqi, 2)
+        ) |>
+    filter(x %in% input$chosenSelection) |>
+    mutate(x = fct_reorder(x, average_aqi)
+      )
+
+    ggplot(average_data_AQI, aes(x = x, y = average_aqi, fill = x)) +
+      geom_col() +
+      geom_text(
+        aes(label = average_aqi),
+        vjust = -0.3,
+        size = 5
+      ) +
+      labs(
+        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3)),
+        title = "Particulates in the Inland Empire are 3× the Healthy Amount",
+        subtitle = "IQAir Monitor Data, Public Health & Environmental Standards"
+      ) +
+      scale_fill_manual(values = pm25_colors, drop = FALSE
+      ) +
+      theme_bw() +
+      theme(
+        axis.title.x = element_blank(),
+        legend.position = "none"
+      )
+  })
+
+
 ```
 
 
@@ -676,6 +770,23 @@ data <- reactive({
   }
   return(data)
   })
+
+observeEvent(input$daterange, {
+  updateDateRangeInput(
+    session,
+    "realdaterange",
+    start = input$daterange[1],
+    end = input$daterange[2]
+  )
+})
+
+observeEvent(input$realdaterange, {
+  updateSliderInput(
+    session,
+    "daterange",
+    value = input$realdaterange
+  )
+})
 
 output$timeseries <- renderPlot({
   req(input$chosenSelection)
@@ -707,7 +818,7 @@ output$timeseries <- renderPlot({
                   aes(x = date,
                       y = PM2.5),
                   span = 0.25,
-                  color = alpha('#7777cc', 0.7),
+                  color = '#7777cc',
                   size = 5,
                   alpha = 0.01) +
       geom_hline(yintercept = 9) +
@@ -738,5 +849,46 @@ output$timeseries <- renderPlot({
       scale_y_continuous(limits = c(0, 40)) +
       theme_bw()
 })
+
+
 ```
 
+```{r}
+#| context: server
+library(psych)
+
+# For indoor outdoor plot 
+
+output$in_out_chart <- renderPlot({
+  req(input$chosenSelection)
+
+    describeBy(data_prepared[5], group = data_prepared$month, mat = T)
+
+stats <- describeBy(data_prepared[c(5,7)],
+                    list(data_prepared$month,
+                         data_prepared$location),
+                    mat = T)
+
+stats_clean <- stats |>
+  select(month = group1,
+         location = group2,
+         variable = vars,
+         mean) |>
+  mutate(variable = recode(
+    variable,
+    `1` = "AQI US mean",
+    `2` = "PM2.5 mean"))
+
+stats_wide <- stats_clean |>
+  pivot_wider(
+    names_from = variable,
+    values_from = mean,
+  )
+stats_wide |>
+  ggplot(aes(x = month,
+             y = `PM2.5 mean`,
+             fill = location)) +
+  geom_col(position = "dodge") +
+  theme_bw()
+  })
+```
