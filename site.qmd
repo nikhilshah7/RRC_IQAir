@@ -456,9 +456,25 @@ citysummary <- monitorswithcity %>%
   ))
 #what is the NA output?? ask Nikhil about look at the original address doc, am I missing a city for about 3 monitors?, unidentified monitors took out of the data so its more easily intepretable 
 
-ggplot(data=citysummary,mapping=aes(y=`AQI US_mean`))+
-  geom_point(mapping=aes(color=city),size=5)
 
+# Grouping by city 
+data_daily_city <- monitorswithcity |>
+  group_by(month, day, city) |>
+  summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+            `PM10` = mean(`PM10 (ug/m3)`),
+            `AQI` = mean(`AQI US`)) |>
+  mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+
+
+bycity <- ggplot() +
+  geom_smooth(data = data_daily_city,
+              aes(x = date,
+                 y = `PM2.5`, 
+                 group = city, 
+                 color = city), 
+            span = 0.2, 
+            alpha = 0.01) + 
+  theme_bw()
 ```
 Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly
 ```{r}
@@ -722,7 +738,7 @@ output$barchartAQI <- renderPlot({
       bind_rows(
         data.frame(
           x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
-          average_aqi = c(5, 39, 50, 10.82) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
+          average_aqi = c(28, 39, 50, 54) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
         )
       ) |>
       mutate(
@@ -753,6 +769,39 @@ output$barchartAQI <- renderPlot({
       )
   })
 
+
+
+# For cities, this works! But the selection doesn't work yet, I will figure this out later
+
+output$citychart <- renderPlot({
+  addressandserialnumbers <- monitors %>%
+    select(serial,city)%>%
+    rename(Source = serial)
+  data_prepared <- data_prepared %>%
+    mutate(Source = trimws(toupper(as.character(Source))))
+  addressandserialnumbers <- addressandserialnumbers %>%
+    mutate(Source = trimws(toupper(as.character(Source))))
+  monitorswithcity <- addressandserialnumbers %>%
+    left_join(data_prepared, by = "Source")
+  monitorswithcity <- monitorswithcity %>%
+    filter(!is.na(city))
+  data_daily_city <- monitorswithcity |>
+    group_by(month, day, city) |>
+    summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+            `PM10` = mean(`PM10 (ug/m3)`),
+            `AQI` = mean(`AQI US`)) |>
+    mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+  
+  ggplot() +
+    geom_smooth(data = data_daily_city,
+              aes(x = date,
+                 y = `PM2.5`, 
+                 group = city, 
+                 color = city), 
+            span = 0.2, 
+            alpha = 0.01) + 
+    theme_bw()
+})
 
 ```
 
