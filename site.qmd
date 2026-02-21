@@ -571,99 +571,97 @@ available_timeseries <- c()
 
 available_cities <- c("Bloomington", "Fontana", "Rialto")
 
-navset_card_underline(
-  nav_panel("PM2.5 Air Quality",
-            card(card_body(
-                "
-                This chart compares particulate matter levels from a few subsets of air quality monitors, alongside a couple of health standards from government bodies. While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
-                "
-            )),
-            layout_sidebar(
-              sidebar = sidebarPanel(
-                accordion(
-                  open = c("Locations"),
-                  checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US 2024 Average", "SoCal 2025 Average")),
-                  accordion_panel(
-                    "Timescales",
+page_fillable(
+  navset_card_tab(
+    id = 'tabs',
+    nav_panel("PM2.5 Air Quality",
+              card(card_body(
+                  "
+                  This chart compares particulate matter levels from a few subsets of air quality monitors, alongside a couple of health standards from government bodies. While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
+                  "
+              )),
+              layout_sidebar(
+                sidebar = sidebar(
+                    checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US 2024 Average", "SoCal 2025 Average")),
                     radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                  ))),
-              accordion(
-                accordion_panel(
-                  "PM2.5",
-                  plotOutput("barchart")
-                ),
-                accordion_panel(
-                  "AQI",
-                  plotOutput("barchartAQI")
-                )
-              ))),
-  nav_panel("Air Quality Over Time",
-            card(card_body(
-                "
-                Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy.
-                "
-            )),
-            layout_sidebar(
-              sidebar = sidebarPanel(
+                  ),
                 accordion(
-                  open = c("Dates"),
-                  sliderInput(
-                    "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
-                    ),
-                  dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
                   accordion_panel(
-                    "Timescales",
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                  ))),
-              accordion(
-                accordion_panel(
-                  "PM2.5",
-                  plotOutput("timeseries")
-                )
-              ))),
-  nav_panel("Air Quality by City",
-            card(card_body(
-                "
-Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
-                "
-            )),
-            layout_sidebar(
-              sidebar = sidebarPanel(
+                    "PM2.5",
+                    plotOutput("barchart")
+                  ),
+                  accordion_panel(
+                    "AQI",
+                    plotOutput("barchartAQI")
+                  )
+                ))),
+    nav_panel("Air Quality Over Time",
+              card(card_body(
+                  "
+                  Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy.
+                  "
+              )),
+              layout_sidebar(
+                sidebar = sidebarPanel(
+                  accordion(
+                    open = c("Dates"),
+                    sliderInput(
+                      "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
+                      ),
+                    dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
+                    accordion_panel(
+                      "Timescales",
+                      radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                    ))),
                 accordion(
-                  open = c("Cities"),
-                  checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
                   accordion_panel(
-                    "Timescales",
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                  ))),
-              accordion(
-                accordion_panel(
-                  "PM2.5",
-                  plotOutput("citychart")
-                )
-              ))),
-  nav_panel("Indoor vs Outdoor",
-            card(card_body(
-                "
-Indoor vs outdoor PM2.5 by month"
-            )),
-            layout_sidebar(
-              sidebar = sidebarPanel(
+                    "PM2.5",
+                    plotOutput("timeseries")
+                  )
+                ))),
+    nav_panel("Air Quality by City",
+              card(card_body(
+                  "
+  Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
+                  "
+              )),
+              layout_sidebar(
+                sidebar = sidebarPanel(
+                  accordion(
+                    open = c("Cities"),
+                    checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
+                    accordion_panel(
+                      "Timescales",
+                      radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                    ))),
                 accordion(
-                  open = c("Cities"),
-                  checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
                   accordion_panel(
-                    "Timescales",
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                  ))),
-              accordion(
-                accordion_panel(
-                  "PM2.5",
-                  plotOutput("in_out_chart")
-                )
-              )))
+                    "PM2.5",
+                    plotOutput("citychart")
+                  )
+                ))),
+    nav_panel("Indoor vs Outdoor",
+              card(card_body(
+                  "
+  Indoor vs outdoor PM2.5 by month"
+              )),
+              layout_sidebar(
+                sidebar = sidebarPanel(
+                  accordion(
+                    open = c("Cities"),
+                    checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
+                    accordion_panel(
+                      "Timescales",
+                      radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                    ))),
+                accordion(
+                  accordion_panel(
+                    "PM2.5",
+                    plotOutput("in_out_chart")
+                  )
+                )))
+  )
 )
-
 ```
 
 ```{r}
