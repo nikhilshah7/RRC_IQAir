@@ -69,23 +69,23 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-header">
-<ul class="nav nav-tabs shiny-tab-input card-header-tabs" id="tabs" data-tabsetid="4304">
+<ul class="nav nav-tabs shiny-tab-input card-header-tabs" id="tabs" data-tabsetid="9426">
 <li class="active">
-<a href="#tab-4304-1" data-toggle="tab" data-bs-toggle="tab" data-value="PM2.5 Air Quality">PM2.5 Air Quality</a>
+<a href="#tab-9426-1" data-toggle="tab" data-bs-toggle="tab" data-value="PM2.5 Air Quality">PM2.5 Air Quality</a>
 </li>
 <li>
-<a href="#tab-4304-2" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality Over Time">Air Quality Over Time</a>
+<a href="#tab-9426-2" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality Over Time">Air Quality Over Time</a>
 </li>
 <li>
-<a href="#tab-4304-3" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality by City">Air Quality by City</a>
+<a href="#tab-9426-3" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality by City">Air Quality by City</a>
 </li>
 <li>
-<a href="#tab-4304-4" data-toggle="tab" data-bs-toggle="tab" data-value="Indoor vs Outdoor">Indoor vs Outdoor</a>
+<a href="#tab-9426-4" data-toggle="tab" data-bs-toggle="tab" data-value="Indoor vs Outdoor">Indoor vs Outdoor</a>
 </li>
 </ul>
 </div>
-<div class="tab-content html-fill-item html-fill-container" data-tabsetid="4304">
-<div class="tab-pane active html-fill-item html-fill-container bslib-gap-spacing" data-value="PM2.5 Air Quality" id="tab-4304-1" style="gap:0;padding:0;">
+<div class="tab-content html-fill-item html-fill-container" data-tabsetid="9426">
+<div class="tab-pane active html-fill-item html-fill-container bslib-gap-spacing" data-value="PM2.5 Air Quality" id="tab-9426-1" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
@@ -98,37 +98,27 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-6807" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
-<div class="accordion-item" data-value="PM2.5">
-<div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-3301" aria-controls="bslib-accordion-panel-3301" aria-expanded="true">
-<div class="accordion-icon"></div>
-<div class="accordion-title">PM2.5</div>
-</button>
+<div class="shiny-plot-output html-fill-item" id="barchartCombined" style="width:100%;height:400px;"></div>
 </div>
-<div id="bslib-accordion-panel-3301" class="accordion-collapse collapse show">
-<div class="accordion-body">
-<div class="shiny-plot-output html-fill-item" id="barchart" style="width:100%;height:400px;"></div>
-</div>
-</div>
-</div>
-<div class="accordion-item" data-value="AQI">
-<div class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-7498" aria-expanded="false" aria-controls="bslib-accordion-panel-7498">
-<div class="accordion-icon"></div>
-<div class="accordion-title">AQI</div>
-</button>
-</div>
-<div id="bslib-accordion-panel-7498" class="accordion-collapse collapse">
-<div class="accordion-body">
-<div class="shiny-plot-output html-fill-item" id="barchartAQI" style="width:100%;height:400px;"></div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<aside id="bslib-sidebar-2388" class="sidebar" hidden="">
+<aside id="bslib-sidebar-3449" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
+<div id="chosenMeasure" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="chosenMeasure-label">
+<label class="control-label" id="chosenMeasure-label" for="chosenMeasure">Air Quality Measurement:</label>
+<div class="shiny-options-group">
+<div class="radio">
+<label>
+<input type="radio" name="chosenMeasure" value="PM2.5" checked="checked">
+<span>PM2.5</span>
+</label>
+</div>
+<div class="radio">
+<label>
+<input type="radio" name="chosenMeasure" value="AQI">
+<span>AQI</span>
+</label>
+</div>
+</div>
+</div>
 <div id="chosenSelection" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="chosenSelection-label">
 <label class="control-label" id="chosenSelection-label" for="chosenSelection">Data:</label>
 <div class="shiny-options-group">
@@ -178,11 +168,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2388"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-3449"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
-<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality Over Time" id="tab-4304-2" style="gap:0;padding:0;">
+<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality Over Time" id="tab-9426-2" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
@@ -195,15 +185,15 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-2856" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-3835" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-5769" aria-controls="bslib-accordion-panel-5769" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-1093" aria-controls="bslib-accordion-panel-1093" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-5769" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-1093" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="timeseries" style="width:100%;height:400px;"></div>
 </div>
@@ -211,7 +201,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-4158" class="sidebar" hidden="">
+<aside id="bslib-sidebar-7102" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
 <div class="form-group shiny-input-container">
 <label class="control-label" id="daterange-label" for="daterange">Dates:</label>
@@ -252,11 +242,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-4158"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-7102"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
-<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality by City" id="tab-4304-3" style="gap:0;padding:0;">
+<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality by City" id="tab-9426-3" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
@@ -267,15 +257,15 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-2712" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-4482" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-2901" aria-controls="bslib-accordion-panel-2901" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-6326" aria-controls="bslib-accordion-panel-6326" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-2901" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-6326" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="citychart" style="width:100%;height:400px;"></div>
 </div>
@@ -283,7 +273,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-7132" class="sidebar" hidden="">
+<aside id="bslib-sidebar-2347" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
 <div id="chosenCity" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="chosenCity-label">
 <label class="control-label" id="chosenCity-label" for="chosenCity">Cities:</label>
@@ -310,11 +300,11 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-7132"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2347"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
-<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Indoor vs Outdoor" id="tab-4304-4" style="gap:0;padding:0;">
+<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Indoor vs Outdoor" id="tab-9426-4" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
@@ -324,15 +314,15 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-6800" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-9875" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-1453" aria-controls="bslib-accordion-panel-1453" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-4246" aria-controls="bslib-accordion-panel-4246" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-1453" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-4246" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="in_out_chart" style="width:100%;height:400px;"></div>
 </div>
@@ -340,7 +330,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-8753" class="sidebar" hidden="">
+<aside id="bslib-sidebar-8510" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
 <div id="chosenCity" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="chosenCity-label">
 <label class="control-label" id="chosenCity-label" for="chosenCity">Cities:</label>
@@ -390,7 +380,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-8753"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-8510"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
@@ -505,8 +495,8 @@ pm25_colors <- c(
   "San Diego"            = "#eedd44",
   "US"                   = "#e9bb44",
   "EPA Standard"         = "#dd9944",
-  "Los Angeles"                = "#dd6644",
-  "SoCal"          = "#e55555",
+  "Los Angeles"          = "#dd6644",
+  "SoCal"                = "#e55555",
   "Inland Empire 2025"   = "#ee4433"
 )
 
@@ -515,10 +505,9 @@ pm25_colors <- c(
 # 2025 San Diego: 6.98 PM2.5
 # 2025 San Diego: 39.42 AQI
 
-
-output$barchart <- renderPlot({
+output$barchartCombined <- renderPlot({
   req(input$chosenSelection)
-
+  if (input$chosenMeasure == "PM2.5") {
     average_data <- data_prepared |>
       filter(location == "outdoor") |>
       summarize(
@@ -555,14 +544,8 @@ output$barchart <- renderPlot({
         axis.title.x = element_blank(),
         legend.position = "none"
       )
-  })
-
-
-#For AQI barchart
-
-output$barchartAQI <- renderPlot({
-  req(input$chosenSelection)
-
+  }
+  else {
     average_data_AQI <- data_prepared |>
       filter(location == "outdoor") |>
       summarize(
@@ -590,7 +573,7 @@ output$barchartAQI <- renderPlot({
         size = 5
       ) +
       labs(
-        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3))
+        y = "Annual AQI Average"
       ) +
       scale_fill_manual(values = pm25_colors, drop = FALSE
       ) +
@@ -598,8 +581,10 @@ output$barchartAQI <- renderPlot({
       theme(
         axis.title.x = element_blank(),
         legend.position = "none"
-      )
-  })
+      )    
+  }
+})
+
 
 
 
