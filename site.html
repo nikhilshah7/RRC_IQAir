@@ -62,131 +62,51 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="libraries" class="level2">
-<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
-<ul>
-<li>tidyverse handles all the data wrangling</li>
-<li>readxl is for reading in the manually-edited master list of air monitors</li>
-<li>tidygeocoder adds coordinates based on the addresses of monitors</li>
-</ul>
-</section>
-<section id="monitor-master-list" class="level2">
-<h2 class="anchored" data-anchor-id="monitor-master-list">Monitor Master List</h2>
-<ul>
-<li>Adds a full address column (minus zip code) which the geocoder needs to work</li>
-<li>Does the geocoding to add the coordinates (it kind of just neatly adds a lat and long column which is cool)</li>
-<li>Manually fills in missing coordinates</li>
-<li>Makes a new, simplified dataset that can be used to join with the real datasets to add coordinates</li>
-<li>Problem: it doesn’t recognize all of the addresses
-<ul>
-<li>osm method (default) can’t find La Canada, Teakwood, W Orchard, Cricket</li>
-<li>census method can’t find Cinnamon</li>
-<li>right now it uses census method and adds cinnamon manually
-<ul>
-<li>14995 Cinnamon Dr, Fontana, CA (34.03781, -117.4836)</li>
-<li>18449 La Canada Ct, Bloomington, CA (34.06047, -117.4018)</li>
-<li>1063 S Teakwood Ave, Bloomington, CA (34.08215, -117.3895)</li>
-<li>1477 W Orchard Street, Bloomington, CA (34.09003, -117.4004)</li>
-<li>19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)</li>
-</ul></li>
-<li>the problem is when new monitors get added they go to the top so Cinnamon Dr isn’t always going to be the 33rd row</li>
-<li>I would like for it to figure out which row is Cinnamon and add it there</li>
-<li>Better yet using the geocoder with another method to add it to the missing rows</li>
-</ul></li>
-</ul>
-</section>
-<section id="full-air-quality-dataset" class="level2">
-<h2 class="anchored" data-anchor-id="full-air-quality-dataset">Full Air Quality Dataset</h2>
-<ul>
-<li>Needs input of the dataset parameters (dates and frequency), then it should be able to handle the creation of the main dataset on its own</li>
-<li>Recognizes the folder of all the monitor sheets in the data folder</li>
-<li>Figures out how many files are in that folder (for some reason length() returns it with an L at the end so it extracts just the number)</li>
-<li>Adds each small spreadsheet to one big spreadsheet</li>
-<li>Imports data into RStudio</li>
-<li>Adds coordinate columns</li>
-<li>Should use lubridate to add a month column/whatever else if need be</li>
-</ul>
-</section>
-<section id="plots" class="level2">
-<h2 class="anchored" data-anchor-id="plots">Plots</h2>
-<ul>
-<li>Very basic timeseries scatterplots</li>
-<li>TBD</li>
-</ul>
-<section id="timeseries" class="level3">
-<h3 class="anchored" data-anchor-id="timeseries">Timeseries</h3>
-</section>
-</section>
-<section id="maps" class="level2">
-<h2 class="anchored" data-anchor-id="maps">Maps</h2>
-<section id="to-do" class="level3">
-<h3 class="anchored" data-anchor-id="to-do">To Do</h3>
-<ul>
-<li>Label each marker with air quality</li>
-<li>Create a shiny app</li>
-<li>Add a time slider to be able to see the data change over time</li>
-<li>Use the API to have it update in real time</li>
-<li>Host a shiny app online</li>
-</ul>
-<p>Sorting the sites by location to then get summary stats for our 11/15 data sharing!</p>
-<p>Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly</p>
-<p>Purple Air Data! Each monitor is a separate sheet so merging them all</p>
+<p>Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.</p>
+<p>In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members’ homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.</p>
 <div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>`summarise()` has grouped output by 'month'. You can override using the
-`.groups` argument.</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output cell-output-stderr">
-<pre><code>
-Attaching package: 'bslib'</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>The following object is masked from 'package:utils':
-
-    page</code></pre>
-</div>
 <div class="cell-output-display">
 
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-header">
-<ul class="nav nav-tabs shiny-tab-input card-header-tabs" id="tabs" data-tabsetid="6082">
+<ul class="nav nav-tabs shiny-tab-input card-header-tabs" id="tabs" data-tabsetid="4304">
 <li class="active">
-<a href="#tab-6082-1" data-toggle="tab" data-bs-toggle="tab" data-value="PM2.5 Air Quality">PM2.5 Air Quality</a>
+<a href="#tab-4304-1" data-toggle="tab" data-bs-toggle="tab" data-value="PM2.5 Air Quality">PM2.5 Air Quality</a>
 </li>
 <li>
-<a href="#tab-6082-2" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality Over Time">Air Quality Over Time</a>
+<a href="#tab-4304-2" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality Over Time">Air Quality Over Time</a>
 </li>
 <li>
-<a href="#tab-6082-3" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality by City">Air Quality by City</a>
+<a href="#tab-4304-3" data-toggle="tab" data-bs-toggle="tab" data-value="Air Quality by City">Air Quality by City</a>
 </li>
 <li>
-<a href="#tab-6082-4" data-toggle="tab" data-bs-toggle="tab" data-value="Indoor vs Outdoor">Indoor vs Outdoor</a>
+<a href="#tab-4304-4" data-toggle="tab" data-bs-toggle="tab" data-value="Indoor vs Outdoor">Indoor vs Outdoor</a>
 </li>
 </ul>
 </div>
-<div class="tab-content html-fill-item html-fill-container" data-tabsetid="6082">
-<div class="tab-pane active html-fill-item html-fill-container bslib-gap-spacing" data-value="PM2.5 Air Quality" id="tab-6082-1" style="gap:0;padding:0;">
+<div class="tab-content html-fill-item html-fill-container" data-tabsetid="4304">
+<div class="tab-pane active html-fill-item html-fill-container bslib-gap-spacing" data-value="PM2.5 Air Quality" id="tab-4304-1" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
-                  This chart compares particulate matter levels from a few subsets of air quality monitors, alongside a couple of health standards from government bodies. While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
+                  While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
+                  
+                  Here, you can compare particulate matter levels from air quality monitors in different regions, alongside a couple of health standards from government bodies. 
                   </div>
 <script data-bslib-card-init="">bslib.Card.initializeAllCards();</script>
 </div>
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-6491" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-6807" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-4816" aria-controls="bslib-accordion-panel-4816" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-3301" aria-controls="bslib-accordion-panel-3301" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-4816" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-3301" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="barchart" style="width:100%;height:400px;"></div>
 </div>
@@ -194,12 +114,12 @@ Attaching package: 'bslib'</code></pre>
 </div>
 <div class="accordion-item" data-value="AQI">
 <div class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-3536" aria-expanded="false" aria-controls="bslib-accordion-panel-3536">
+<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-7498" aria-expanded="false" aria-controls="bslib-accordion-panel-7498">
 <div class="accordion-icon"></div>
 <div class="accordion-title">AQI</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-3536" class="accordion-collapse collapse">
+<div id="bslib-accordion-panel-7498" class="accordion-collapse collapse">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="barchartAQI" style="width:100%;height:400px;"></div>
 </div>
@@ -207,7 +127,7 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-6302" class="sidebar" hidden="">
+<aside id="bslib-sidebar-2388" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
 <div id="chosenSelection" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="chosenSelection-label">
 <label class="control-label" id="chosenSelection-label" for="chosenSelection">Data:</label>
@@ -232,67 +152,58 @@ Attaching package: 'bslib'</code></pre>
 </div>
 <div class="checkbox">
 <label>
-<input type="checkbox" name="chosenSelection" value="US 2024 Average" checked="checked">
-<span>US 2024 Average</span>
+<input type="checkbox" name="chosenSelection" value="US" checked="checked">
+<span>US</span>
 </label>
 </div>
 <div class="checkbox">
 <label>
-<input type="checkbox" name="chosenSelection" value="SoCal 2025 Average" checked="checked">
-<span>SoCal 2025 Average</span>
+<input type="checkbox" name="chosenSelection" value="SoCal" checked="checked">
+<span>SoCal</span>
 </label>
 </div>
-</div>
-</div>
-<div id="chosenTimescale" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="chosenTimescale-label">
-<label class="control-label" id="chosenTimescale-label" for="chosenTimescale">Temporal Resolution:</label>
-<div class="shiny-options-group">
-<div class="radio">
+<div class="checkbox">
 <label>
-<input type="radio" name="chosenTimescale" value="Daily">
-<span>Daily</span>
+<input type="checkbox" name="chosenSelection" value="Los Angeles">
+<span>Los Angeles</span>
 </label>
 </div>
-<div class="radio">
+<div class="checkbox">
 <label>
-<input type="radio" name="chosenTimescale" value="Weekly" checked="checked">
-<span>Weekly</span>
-</label>
-</div>
-<div class="radio">
-<label>
-<input type="radio" name="chosenTimescale" value="Monthly">
-<span>Monthly</span>
+<input type="checkbox" name="chosenSelection" value="San Diego">
+<span>San Diego</span>
 </label>
 </div>
 </div>
 </div>
 </div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-6302"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2388"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
-<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality Over Time" id="tab-6082-2" style="gap:0;padding:0;">
+<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality Over Time" id="tab-4304-2" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
-                  Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy.
+                  Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy. 
+                  
+                  Here, you can see how regional air quality changed over the first year of air monitoring.
                   </div>
 <script data-bslib-card-init="">bslib.Card.initializeAllCards();</script>
 </div>
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-1269" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-2856" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-3837" aria-controls="bslib-accordion-panel-3837" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-5769" aria-controls="bslib-accordion-panel-5769" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-3837" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-5769" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="timeseries" style="width:100%;height:400px;"></div>
 </div>
@@ -300,11 +211,8 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-7433" class="sidebar" hidden="">
+<aside id="bslib-sidebar-4158" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
-<div class="col-sm-4">
-<form class="well" role="complementary">
-<div id="bslib-accordion-8107" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="form-group shiny-input-container">
 <label class="control-label" id="daterange-label" for="daterange">Dates:</label>
 <input class="js-range-slider" id="daterange" data-skin="shiny" data-type="double" data-min="1738454400000" data-max="1762473600000" data-from="1738454400000" data-to="1762473600000" data-step="86400000" data-grid="true" data-grid-num="9.92857142857143" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-drag-interval="true" data-data-type="date" data-time-format="%Y-%m-%d">
@@ -319,15 +227,6 @@ Attaching package: 'bslib'</code></pre>
 <input class="form-control" type="text" aria-labelledby="realdaterange-label" title="Date format: yyyy-mm-dd" data-date-language="en" data-date-week-start="0" data-date-format="yyyy-mm-dd" data-date-start-view="month" data-min-date="2025-02-02" data-max-date="2025-11-07" data-initial-date="2025-11-07" data-date-autoclose="true">
 </div>
 </div>
-<div class="accordion-item" data-value="Timescales">
-<div class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-6452" aria-expanded="false" aria-controls="bslib-accordion-panel-6452">
-<div class="accordion-icon"></div>
-<div class="accordion-title">Timescales</div>
-</button>
-</div>
-<div id="bslib-accordion-panel-6452" class="accordion-collapse collapse">
-<div class="accordion-body">
 <div id="chosenTimescale" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="chosenTimescale-label">
 <label class="control-label" id="chosenTimescale-label" for="chosenTimescale">Temporal Resolution:</label>
 <div class="shiny-options-group">
@@ -352,18 +251,12 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-</div>
-</div>
-</div>
-</form>
-</div>
-</div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-7433"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-4158"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
-<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality by City" id="tab-6082-3" style="gap:0;padding:0;">
+<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Air Quality by City" id="tab-4304-3" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
@@ -374,15 +267,15 @@ Attaching package: 'bslib'</code></pre>
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-9236" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-2712" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-1432" aria-controls="bslib-accordion-panel-1432" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-2901" aria-controls="bslib-accordion-panel-2901" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-1432" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-2901" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="citychart" style="width:100%;height:400px;"></div>
 </div>
@@ -390,11 +283,8 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-2288" class="sidebar" hidden="">
+<aside id="bslib-sidebar-7132" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
-<div class="col-sm-4">
-<form class="well" role="complementary">
-<div id="bslib-accordion-2929" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div id="chosenCity" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="chosenCity-label">
 <label class="control-label" id="chosenCity-label" for="chosenCity">Cities:</label>
 <div class="shiny-options-group">
@@ -418,51 +308,13 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-<div class="accordion-item" data-value="Timescales">
-<div class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-7552" aria-expanded="false" aria-controls="bslib-accordion-panel-7552">
-<div class="accordion-icon"></div>
-<div class="accordion-title">Timescales</div>
-</button>
-</div>
-<div id="bslib-accordion-panel-7552" class="accordion-collapse collapse">
-<div class="accordion-body">
-<div id="chosenTimescale" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="chosenTimescale-label">
-<label class="control-label" id="chosenTimescale-label" for="chosenTimescale">Temporal Resolution:</label>
-<div class="shiny-options-group">
-<div class="radio">
-<label>
-<input type="radio" name="chosenTimescale" value="Daily">
-<span>Daily</span>
-</label>
-</div>
-<div class="radio">
-<label>
-<input type="radio" name="chosenTimescale" value="Weekly" checked="checked">
-<span>Weekly</span>
-</label>
-</div>
-<div class="radio">
-<label>
-<input type="radio" name="chosenTimescale" value="Monthly">
-<span>Monthly</span>
-</label>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</form>
-</div>
 </div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-2288"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-7132"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
-<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Indoor vs Outdoor" id="tab-6082-4" style="gap:0;padding:0;">
+<div class="tab-pane html-fill-item html-fill-container bslib-gap-spacing" data-value="Indoor vs Outdoor" id="tab-4304-4" style="gap:0;padding:0;">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
 <div class="card bslib-card bslib-mb-spacing html-fill-item html-fill-container" data-bslib-card-init="" data-require-bs-caller="card()" data-require-bs-version="5">
 <div class="card-body bslib-gap-spacing html-fill-item html-fill-container" style="margin-top:auto;margin-bottom:auto;flex:1 1 auto;">
@@ -472,15 +324,15 @@ Attaching package: 'bslib'</code></pre>
 </div>
 <div class="bslib-sidebar-layout bslib-mb-spacing html-fill-item" data-bslib-sidebar-init="TRUE" data-collapsible-desktop="true" data-collapsible-mobile="true" data-open-desktop="open" data-open-mobile="closed" data-require-bs-caller="layout_sidebar()" data-require-bs-version="5" style="--_sidebar-width:250px;">
 <div class="main bslib-gap-spacing html-fill-container">
-<div id="bslib-accordion-1392" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
+<div id="bslib-accordion-6800" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div class="accordion-item" data-value="PM2.5">
 <div class="accordion-header">
-<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-5327" aria-controls="bslib-accordion-panel-5327" aria-expanded="true">
+<button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-1453" aria-controls="bslib-accordion-panel-1453" aria-expanded="true">
 <div class="accordion-icon"></div>
 <div class="accordion-title">PM2.5</div>
 </button>
 </div>
-<div id="bslib-accordion-panel-5327" class="accordion-collapse collapse show">
+<div id="bslib-accordion-panel-1453" class="accordion-collapse collapse show">
 <div class="accordion-body">
 <div class="shiny-plot-output html-fill-item" id="in_out_chart" style="width:100%;height:400px;"></div>
 </div>
@@ -488,11 +340,8 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-<aside id="bslib-sidebar-4857" class="sidebar" hidden="">
+<aside id="bslib-sidebar-8753" class="sidebar" hidden="">
 <div class="sidebar-content bslib-gap-spacing">
-<div class="col-sm-4">
-<form class="well" role="complementary">
-<div id="bslib-accordion-3555" class="accordion" data-require-bs-version="5" data-require-bs-caller="accordion()">
 <div id="chosenCity" class="form-group shiny-input-checkboxgroup shiny-input-container" role="group" aria-labelledby="chosenCity-label">
 <label class="control-label" id="chosenCity-label" for="chosenCity">Cities:</label>
 <div class="shiny-options-group">
@@ -516,15 +365,6 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-<div class="accordion-item" data-value="Timescales">
-<div class="accordion-header">
-<button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#bslib-accordion-panel-1821" aria-expanded="false" aria-controls="bslib-accordion-panel-1821">
-<div class="accordion-icon"></div>
-<div class="accordion-title">Timescales</div>
-</button>
-</div>
-<div id="bslib-accordion-panel-1821" class="accordion-collapse collapse">
-<div class="accordion-body">
 <div id="chosenTimescale" class="form-group shiny-input-radiogroup shiny-input-container" role="radiogroup" aria-labelledby="chosenTimescale-label">
 <label class="control-label" id="chosenTimescale-label" for="chosenTimescale">Temporal Resolution:</label>
 <div class="shiny-options-group">
@@ -549,14 +389,8 @@ Attaching package: 'bslib'</code></pre>
 </div>
 </div>
 </div>
-</div>
-</div>
-</div>
-</form>
-</div>
-</div>
 </aside>
-<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-4857"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
+<button class="collapse-toggle" type="button" title="Toggle sidebar" aria-expanded="true" aria-controls="bslib-sidebar-8753"><svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 16 16" class="bi bi-chevron-left collapse-icon" style="fill:currentColor;" aria-hidden="true" role="img"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"></path></svg></button>
 <script data-bslib-sidebar-init="">bslib.Sidebar.initCollapsibleAll()</script>
 </div>
 </div>
@@ -573,6 +407,7 @@ library(readxl)
 library(tidygeocoder)
 library(writexl)
 library(rsconnect)
+library(bslib)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server-start">
@@ -667,11 +502,19 @@ variables_ids_to_units <- c()
 
 pm25_colors <- c(
   "WHO Guideline"        = "#55cc22",
-  "US 2024 Average"     = "#eedd44",
-  "EPA Standard"        = "#e9bb44",
-  "SoCal 2025 Average"  = "#dd9944",
-  "Inland Empire 2025"  = "#dd6644"
+  "San Diego"            = "#eedd44",
+  "US"                   = "#e9bb44",
+  "EPA Standard"         = "#dd9944",
+  "Los Angeles"                = "#dd6644",
+  "SoCal"          = "#e55555",
+  "Inland Empire 2025"   = "#ee4433"
 )
+
+# 2025 Los Angeles: 9.79 PM
+# 2025 Los Angeles: 51.75 AQI
+# 2025 San Diego: 6.98 PM2.5
+# 2025 San Diego: 39.42 AQI
+
 
 output$barchart <- renderPlot({
   req(input$chosenSelection)
@@ -684,8 +527,8 @@ output$barchart <- renderPlot({
       ) |>
       bind_rows(
         data.frame(
-          x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
-          average_pm25 = c(5, 7.08, 9.0, 10.82)
+          x = c("WHO Guideline", "US", "EPA Standard", "SoCal", "Los Angeles", "San Diego"),
+          average_pm25 = c(5, 7.08, 9.0, 10.82, 9.79, 6.98)
         )
       ) |>
       mutate(
@@ -703,13 +546,11 @@ output$barchart <- renderPlot({
         size = 5
       ) +
       labs(
-        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3)),
-        title = "Particulates in the Inland Empire are 3× the Healthy Amount",
-        subtitle = "IQAir Monitor Data, Public Health & Environmental Standards"
+        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3))
       ) +
       scale_fill_manual(values = pm25_colors, drop = FALSE
       ) +
-      theme_bw() +
+      theme_classic() +
       theme(
         axis.title.x = element_blank(),
         legend.position = "none"
@@ -730,8 +571,8 @@ output$barchartAQI <- renderPlot({
       ) |>
       bind_rows(
         data.frame(
-          x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
-          average_aqi = c(28, 39, 50, 54) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
+          x = c("WHO Guideline", "US", "EPA Standard", "SoCal", "Los Angeles", "San Diego"),
+          average_aqi = c(28, 39, 50, 54, 52, 39) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
         )
       ) |>
       mutate(
@@ -749,13 +590,11 @@ output$barchartAQI <- renderPlot({
         size = 5
       ) +
       labs(
-        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3)),
-        title = "Particulates in the Inland Empire are 3× the Healthy Amount",
-        subtitle = "IQAir Monitor Data, Public Health & Environmental Standards"
+        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3))
       ) +
       scale_fill_manual(values = pm25_colors, drop = FALSE
       ) +
-      theme_bw() +
+      theme_classic() +
       theme(
         axis.title.x = element_blank(),
         legend.position = "none"
@@ -886,7 +725,7 @@ output$timeseries <- renderPlot({
            ) +
       scale_x_date(limits = c(input$realdaterange[1], input$realdaterange[2])) +
       scale_y_continuous(limits = c(0, 40)) +
-      theme_bw()
+      theme_minimal()
 })
 
 
@@ -968,8 +807,6 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78]}},"value":[{"type":"character","attributes":{},"value":["base","bit","bit64","bslib","cachem","cellranger","cli","compiler","crayon","curl","datasets","digest","dplyr","evaluate","farver","fastmap","forcats","fs","generics","ggplot2","glue","graphics","grDevices","grid","gtable","hms","htmltools","htmlwidgets","httpuv","httr","jquerylib","jsonlite","knitr","later","lifecycle","lubridate","magrittr","memoise","methods","mime","otel","parallel","pillar","pkgconfig","promises","purrr","R6","RColorBrewer","Rcpp","readr","readxl","rlang","rmarkdown","rsconnect","rstudioapi","S7","sass","scales","shiny","stats","stringi","stringr","tibble","tidygeocoder","tidyr","tidyselect","tidyverse","timechange","tools","tzdb","utils","vctrs","vroom","withr","writexl","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["4.5.2","4.6.0","4.6.0-1","0.9.0","1.1.0","1.1.0","3.6.5","4.5.2","1.5.3","7.0.0","4.5.2","0.6.37","1.1.4","1.0.5","2.1.2","1.2.0","1.0.1","1.6.6","0.1.4","4.0.0","1.8.0","4.5.2","4.5.2","4.5.2","0.3.6","1.1.4","0.5.8.1","1.6.4","1.6.16","1.4.7","0.1.4","2.0.0","1.50","1.4.4","1.0.4","1.9.4","2.0.4","2.0.1","4.5.2","0.13","0.2.0","4.5.2","1.11.1","2.0.3","1.5.0","1.2.0","2.6.1","1.1-3","1.1.0","2.1.5","1.4.5","1.1.6","2.30","1.6.2","0.17.1","0.2.0","0.4.10","1.4.0","1.11.1","4.5.2","1.8.7","1.6.0","3.3.0","1.0.6","1.3.1","1.2.1","2.0.0","0.3.0","4.5.2","0.5.0","4.5.2","0.6.5","1.6.6","3.0.2","1.5.4","0.54","1.8-4","2.3.10"]}]}]}
 </script>
 <!--/html_preserve-->
-</section>
-</section>
 
 </main>
 <!-- /main column -->

@@ -4,12 +4,6 @@ format: html
 server: shiny
 ---
 
-## Libraries
-
-- tidyverse handles all the data wrangling
-- readxl is for reading in the manually-edited master list of air monitors
-- tidygeocoder adds coordinates based on the addresses of monitors
-
 ```{r}
 #| context: setup
 #| include: false
@@ -20,26 +14,8 @@ library(readxl)
 library(tidygeocoder)
 library(writexl)
 library(rsconnect)
+library(bslib)
 ```
-
-## Monitor Master List
-
-- Adds a full address column (minus zip code) which the geocoder needs to work
-- Does the geocoding to add the coordinates (it kind of just neatly adds a lat and long column which is cool)
-- Manually fills in missing coordinates
-- Makes a new, simplified dataset that can be used to join with the real datasets to add coordinates
-- Problem: it doesn't recognize all of the addresses
-  - osm method (default) can't find La Canada, Teakwood, W Orchard, Cricket
-  - census method can't find Cinnamon
-  - right now it uses census method and adds cinnamon manually
-    - 14995 Cinnamon Dr, Fontana, CA (34.03781, -117.4836)
-    - 18449 La Canada Ct, Bloomington, CA (34.06047, -117.4018)
-    - 1063 S Teakwood Ave, Bloomington, CA (34.08215, -117.3895)
-    - 1477 W Orchard Street, Bloomington, CA (34.09003, -117.4004)
-    - 19338 Cricket Ct, Bloomington, CA (34.03924, -117.3826)
-  - the problem is when new monitors get added they go to the top so Cinnamon Dr isn't always going to be the 33rd row
-  - I would like for it to figure out which row is Cinnamon and add it there
-  - Better yet using the geocoder with another method to add it to the missing rows
 
 ```{r}
 #| context: setup
@@ -74,16 +50,6 @@ coords <- monitors |>
          location,
          Source)
 ```
-
-## Full Air Quality Dataset
-
-- Needs input of the dataset parameters (dates and frequency), then it should be able to handle the creation of the main dataset on its own
-- Recognizes the folder of all the monitor sheets in the data folder
-- Figures out how many files are in that folder (for some reason length() returns it with an L at the end so it extracts just the number)
-- Adds each small spreadsheet to one big spreadsheet
-- Imports data into RStudio
-- Adds coordinate columns
-- Should use lubridate to add a month column/whatever else if need be
 
 ```{r}
 #| context: setup
@@ -147,11 +113,6 @@ data_prepared <- data |>
 
 ```
 
-## Plots
-
-- Very basic timeseries scatterplots
-- TBD
-
 ```{r}
 #| label: Plots
 
@@ -206,7 +167,6 @@ bar <- average |>
 
 ```
 
-### Timeseries
 ```{r}
 #| eval: false
 
@@ -269,16 +229,6 @@ timeseries <- ggplot() +
 # summarize mean of aqi pm2.5 pm10
 # create geomsmooth
 ```
-
-
-## Maps
-
-### To Do
-- Label each marker with air quality
-- Create a shiny app
-- Add a time slider to be able to see the data change over time
-- Use the API to have it update in real time
-- Host a shiny app online
 
 ```{r}
 #| eval: false
@@ -391,7 +341,7 @@ stats_wide |>
   geom_col(position = "dodge") 
            
 ```
-Sorting the sites by location to then get summary stats for our 11/15 data sharing! 
+
 ```{r}
 #| eval: false
 
@@ -414,9 +364,10 @@ monitorswithcity <- monitorswithcity %>%
   filter(!is.na(city))
 ```
 
-
 ```{r}
 #| eval: false
+#| warning: false
+#| message: false
 
 ggplot(
   data=monitorswithcity,
@@ -476,15 +427,11 @@ bycity <- ggplot() +
             alpha = 0.01) + 
   theme_bw()
 ```
-Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly
-```{r}
-
-```
-
-Purple Air Data! Each monitor is a separate sheet so merging them all 
 
 ```{r}
 #| eval: false
+#| warning: false
+#| message: false
 
 library(readr)
 library(dplyr)
@@ -527,8 +474,10 @@ average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
 summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
-
 ```{r}
+#| warning: false
+#| message: false
+#| 
     output_file <- 'data/PA_Combined.csv'
 
     all_PA_data <- read.csv(output_file)
@@ -553,17 +502,21 @@ summary(under_604_pm10$pm10.0_atm) # median is 10.2
     
 ```
 
+Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.
+
+In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members' homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.
+
 ```{r}
 # UI
 #| context: ui
-
-library(bslib)
+#| warning: false
+#| message: false
 
 available_variables <- c()
 
 available_Yvariables <- c()
 
-available_selections <- c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US 2024 Average", "SoCal 2025 Average")
+available_selections <- c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US", "SoCal", "Los Angeles", "San Diego")
 
 available_timescales <- c("Daily", "Weekly", "Monthly")
 
@@ -577,14 +530,14 @@ page_fillable(
     nav_panel("PM2.5 Air Quality",
               card(card_body(
                   "
-                  This chart compares particulate matter levels from a few subsets of air quality monitors, alongside a couple of health standards from government bodies. While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
+                  While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
+                  
+                  Here, you can compare particulate matter levels from air quality monitors in different regions, alongside a couple of health standards from government bodies. 
                   "
               )),
               layout_sidebar(
                 sidebar = sidebar(
-                    checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US 2024 Average", "SoCal 2025 Average")),
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                  ),
+                    checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US", "SoCal"))),
                 accordion(
                   accordion_panel(
                     "PM2.5",
@@ -598,21 +551,19 @@ page_fillable(
     nav_panel("Air Quality Over Time",
               card(card_body(
                   "
-                  Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy.
+                  Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy. 
+                  
+                  Here, you can see how regional air quality changed over the first year of air monitoring.
                   "
               )),
               layout_sidebar(
-                sidebar = sidebarPanel(
-                  accordion(
-                    open = c("Dates"),
+                sidebar = sidebar(
                     sliderInput(
                       "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
                       ),
                     dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
-                    accordion_panel(
-                      "Timescales",
-                      radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                    ))),
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                    ),
                 accordion(
                   accordion_panel(
                     "PM2.5",
@@ -626,14 +577,9 @@ page_fillable(
                   "
               )),
               layout_sidebar(
-                sidebar = sidebarPanel(
-                  accordion(
-                    open = c("Cities"),
-                    checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
-                    accordion_panel(
-                      "Timescales",
-                      radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                    ))),
+                sidebar = sidebar(
+                    checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto"))
+                    ),
                 accordion(
                   accordion_panel(
                     "PM2.5",
@@ -646,14 +592,10 @@ page_fillable(
   Indoor vs outdoor PM2.5 by month"
               )),
               layout_sidebar(
-                sidebar = sidebarPanel(
-                  accordion(
-                    open = c("Cities"),
+                sidebar = sidebar(
                     checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
-                    accordion_panel(
-                      "Timescales",
-                      radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                    ))),
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                    ),
                 accordion(
                   accordion_panel(
                     "PM2.5",
@@ -672,11 +614,19 @@ variables_ids_to_units <- c()
 
 pm25_colors <- c(
   "WHO Guideline"        = "#55cc22",
-  "US 2024 Average"     = "#eedd44",
-  "EPA Standard"        = "#e9bb44",
-  "SoCal 2025 Average"  = "#dd9944",
-  "Inland Empire 2025"  = "#dd6644"
+  "San Diego"            = "#eedd44",
+  "US"                   = "#e9bb44",
+  "EPA Standard"         = "#dd9944",
+  "Los Angeles"          = "#dd6644",
+  "SoCal"                = "#e55555",
+  "Inland Empire 2025"   = "#ee4433"
 )
+
+# 2025 Los Angeles: 9.79 PM
+# 2025 Los Angeles: 51.75 AQI
+# 2025 San Diego: 6.98 PM2.5
+# 2025 San Diego: 39.42 AQI
+
 
 output$barchart <- renderPlot({
   req(input$chosenSelection)
@@ -689,8 +639,8 @@ output$barchart <- renderPlot({
       ) |>
       bind_rows(
         data.frame(
-          x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
-          average_pm25 = c(5, 7.08, 9.0, 10.82)
+          x = c("WHO Guideline", "US", "EPA Standard", "SoCal", "Los Angeles", "San Diego"),
+          average_pm25 = c(5, 7.08, 9.0, 10.82, 9.79, 6.98)
         )
       ) |>
       mutate(
@@ -708,13 +658,11 @@ output$barchart <- renderPlot({
         size = 5
       ) +
       labs(
-        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3)),
-        title = "Particulates in the Inland Empire are 3× the Healthy Amount",
-        subtitle = "IQAir Monitor Data, Public Health & Environmental Standards"
+        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3))
       ) +
       scale_fill_manual(values = pm25_colors, drop = FALSE
       ) +
-      theme_bw() +
+      theme_classic() +
       theme(
         axis.title.x = element_blank(),
         legend.position = "none"
@@ -735,8 +683,8 @@ output$barchartAQI <- renderPlot({
       ) |>
       bind_rows(
         data.frame(
-          x = c("WHO Guideline", "US 2024 Average", "EPA Standard", "SoCal 2025 Average"),
-          average_aqi = c(28, 39, 50, 54) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
+          x = c("WHO Guideline", "US", "EPA Standard", "SoCal", "Los Angeles", "San Diego"),
+          average_aqi = c(28, 39, 50, 54, 52, 39) #US average from IQAir, EPA from AQI scale, but maybe should be 100?
         )
       ) |>
       mutate(
@@ -754,13 +702,11 @@ output$barchartAQI <- renderPlot({
         size = 5
       ) +
       labs(
-        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3)),
-        title = "Particulates in the Inland Empire are 3× the Healthy Amount",
-        subtitle = "IQAir Monitor Data, Public Health & Environmental Standards"
+        y = bquote("Annual PM2.5 Average" ~(mu*g/m^3))
       ) +
       scale_fill_manual(values = pm25_colors, drop = FALSE
       ) +
-      theme_bw() +
+      theme_classic() +
       theme(
         axis.title.x = element_blank(),
         legend.position = "none"
@@ -894,7 +840,7 @@ output$timeseries <- renderPlot({
            ) +
       scale_x_date(limits = c(input$realdaterange[1], input$realdaterange[2])) +
       scale_y_continuous(limits = c(0, 40)) +
-      theme_bw()
+      theme_minimal()
 })
 
 
