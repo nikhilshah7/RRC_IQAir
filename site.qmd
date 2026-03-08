@@ -62,8 +62,8 @@ coords <- monitors |>
 
 # Fill in the bounds of the dataset and the rate of data collection. 
 # end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
-start_date <- '01Jan25'
-end_date <-  '07Nov25'
+start_date <- '02Feb25'
+end_date <-  '02Feb26'
 frequency <- 'hourly'
 data_info <- str_c(start_date, 
                    '-',
@@ -104,8 +104,10 @@ data <- import_data(dataset_folder)
 data_prepared <- data |>
   left_join(coords, by = 'Source') |>
   mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
-  mutate(month = month(datetime),
-         day = day(datetime)) |>
+  mutate(year = year(datetime),
+         month = month(datetime),
+         day = day(datetime),
+         hour = hour(datetime)) |>
   mutate(color = cut(`AQI US`,
                       labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
                       breaks <- c(0, 50, 100, 150, 200, 300, Inf),
@@ -115,6 +117,7 @@ data_prepared <- data |>
 
 ```{r}
 #| label: Plots
+#| eval: false
 
 #data_prepared |>
 #  ggplot(aes(x = month, 
@@ -168,14 +171,34 @@ bar <- average |>
 ```
 
 ```{r}
-#| eval: false
+#| eval: true
+#| warning: false
+#| message: false
 
-data_daily <- data_prepared |>
-  group_by(month, day) |>
-  summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
-            `PM10` = mean(`PM10 (ug/m3)`),
-            `AQI` = mean(`AQI US`)) |>
-  mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+output_file <- 'data/PA_Combined.csv'
+
+all_PA_data <- read.csv(output_file)
+  
+    data_hourly <- data_prepared |>
+      group_by(year, month, day, hour) |>
+      summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                `PM10` = mean(`PM10 (ug/m3)`),
+                `AQI` = mean(`AQI US`)) |>
+      mutate(date = ymd_hm(str_c(year, month, day, hour, '00', sep = '-')))
+    
+    data_daily <- data_prepared |>
+      group_by(year, month, day) |>
+      summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                `PM10` = mean(`PM10 (ug/m3)`),
+                `AQI` = mean(`AQI US`)) |>
+      mutate(date = ymd(str_c(year, month, day, sep = '-')))
+    
+    data_monthly <- data_prepared |>
+      group_by(year, month) |>
+      summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                `PM10` = mean(`PM10 (ug/m3)`),
+                `AQI` = mean(`AQI US`)) |>
+      mutate(date = ym(str_c(year, month, sep = '-')))
 
 PA_monthly <- all_PA_data |>
   filter(pm2.5_atm < 325) |>
@@ -188,41 +211,41 @@ PA_monthly <- all_PA_data |>
   summarize(`PM2.5` = mean(`pm2.5_atm`),
             `PM10` = mean(`pm10.0_atm`))
 
-timeseries <- ggplot() +
-  geom_smooth(data = PA_monthly,
-              aes(x = date,
-                 y = PM2.5),
-              span = 0.25,
-              color = alpha('#7777cc', 0.7),
-              size = 5,
-              alpha = 0.01) +
-  geom_hline(yintercept = 9) +
-  geom_point(data = data_daily,
-             aes(x = date,
-                 y = PM2.5),
-             size = 0.6,
-             color = '#dd6644') +
-  geom_line(data = data_daily,
-            aes(x = date,
-                 y = PM2.5),
-             color = '#dd6644') +
-  geom_smooth(data = data_daily,
-              aes(x = date,
-                 y = PM2.5),
-              span = 0.2,
-             color = '#dd6644',
-             se = F) +
-  annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
-  annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
-  annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
-  labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
-       x = 'Date',
-       title = 'Particulates Over Time',
-       #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
-       ) +
-  #scale_x_date(limits = c(as.Date("2025-02-15"), as.Date("2025-10-15"))) +
-  scale_y_continuous(limits = c(0, 40)) +
-  theme_bw()
+# timeseries <- ggplot() +
+#   geom_smooth(data = PA_monthly,
+#               aes(x = date,
+#                  y = PM2.5),
+#               span = 0.25,
+#               color = alpha('#7777cc', 0.7),
+#               size = 5,
+#               alpha = 0.01) +
+#   geom_hline(yintercept = 9) +
+#   geom_point(data = data_daily,
+#              aes(x = date,
+#                  y = PM2.5),
+#              size = 0.6,
+#              color = '#dd6644') +
+#   geom_line(data = data_daily,
+#             aes(x = date,
+#                  y = PM2.5),
+#              color = '#dd6644') +
+#   geom_smooth(data = data_daily,
+#               aes(x = date,
+#                  y = PM2.5),
+#               span = 0.2,
+#              color = '#dd6644',
+#              se = F) +
+#   annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
+#   annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
+#   annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+#   labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
+#        x = 'Date',
+#        title = 'Particulates Over Time',
+#        #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
+#        ) +
+#   #scale_x_date(limits = c(as.Date("2025-02-15"), as.Date("2025-10-15"))) +
+#   scale_y_continuous(limits = c(0, 40)) +
+#   theme_bw()
 
 
 # group by month and day
@@ -474,39 +497,12 @@ average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
 summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
-```{r}
-#| warning: false
-#| message: false
-#| 
-    output_file <- 'data/PA_Combined.csv'
-
-    all_PA_data <- read.csv(output_file)
-
-    data_daily <- data_prepared |>
-      group_by(month, day) |>
-      summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
-                `PM10` = mean(`PM10 (ug/m3)`),
-                `AQI` = mean(`AQI US`)) |>
-      mutate(date = ymd(str_c('2025', month, day, sep = '-')))
-
-    PA_monthly <- all_PA_data |>
-      filter(pm2.5_atm < 325) |>
-      mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
-      mutate(year = year(time_stamp),
-            month = month(time_stamp),
-            day = 15) |>
-      mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
-      group_by(date) |>
-      summarize(`PM2.5` = mean(`pm2.5_atm`),
-                `PM10` = mean(`pm10.0_atm`))
-    
-```
-
 Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.
 
 In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members' homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.
 
 ```{r}
+#| label: UI
 # UI
 #| context: ui
 #| warning: false
@@ -518,7 +514,7 @@ available_Yvariables <- c()
 
 available_selections <- c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US", "SoCal", "Los Angeles", "San Diego")
 
-available_timescales <- c("Daily", "Weekly", "Monthly")
+available_timescales <- c("Hourly", "Daily", "Monthly")
 
 available_measures <- c("PM2.5", "AQI")
 
@@ -556,7 +552,7 @@ page_fillable(
                       "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
                       ),
                     dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Daily")
                     ),
                 accordion(
                   accordion_panel(
@@ -601,6 +597,7 @@ page_fillable(
 ```
 
 ```{r}
+#| label: Bar
 #| context: server
 
 variables_names_to_ids <- c("new" = "old")
@@ -740,18 +737,8 @@ output$citychart <- renderPlot({
 
 
 ```{r}
+#| label: Time
 #| context: server
-
-data <- reactive({
-  if (input$chosenTimescale == "Hourly"){
-    data <- data_hourly
-  } else if (input$chosenTimescale == "Daily"){
-    data <- data_daily
-  } else {
-    data <- data_monthly
-  }
-  return(data)
-  })
 
 observeEvent(input$daterange, {
   updateDateRangeInput(
@@ -772,29 +759,27 @@ observeEvent(input$realdaterange, {
 
 output$timeseries <- renderPlot({
   req(input$chosenSelection)
-
-    output_file <- 'data/PA_Combined.csv'
-
-    all_PA_data <- read.csv(output_file)
-
-    data_daily <- data_prepared |>
-      group_by(month, day) |>
+  output_file <- 'data/PA_Combined.csv'
+  all_PA_data <- read.csv(output_file)
+  PA_monthly <- all_PA_data |>
+    filter(pm2.5_atm < 325) |>
+    mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
+    mutate(year = year(time_stamp),
+           month = month(time_stamp),
+           day = 15) |>
+    mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+    group_by(date) |>
+    summarize(`PM2.5` = mean(`pm2.5_atm`),
+              `PM10` = mean(`pm10.0_atm`))
+  
+  if (input$chosenTimescale == "Hourly"){
+    data_hourly <- data_prepared |>
+      group_by(year, month, day, hour) |>
       summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
                 `PM10` = mean(`PM10 (ug/m3)`),
                 `AQI` = mean(`AQI US`)) |>
-      mutate(date = ymd(str_c('2025', month, day, sep = '-')))
-
-    PA_monthly <- all_PA_data |>
-      filter(pm2.5_atm < 325) |>
-      mutate(time_stamp = ymd(str_sub(time_stamp, 1, 10))) |>
-      mutate(year = year(time_stamp),
-            month = month(time_stamp),
-            day = 15) |>
-      mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
-      group_by(date) |>
-      summarize(`PM2.5` = mean(`pm2.5_atm`),
-                `PM10` = mean(`pm10.0_atm`))
-
+      mutate(date = ymd_hm(str_c(year, month, day, hour, '00', sep = '-')))
+    
     ggplot() +
       geom_smooth(data = PA_monthly,
                   aes(x = date,
@@ -804,16 +789,13 @@ output$timeseries <- renderPlot({
                   size = 5,
                   alpha = 0.01) +
       geom_hline(yintercept = 9) +
-      geom_point(data = data_daily,
+      geom_point(data = data_hourly,
                  aes(x = date,
                      y = PM2.5),
-                 size = 0.6,
-                 color = '#dd6644') +
-      geom_line(data = data_daily,
-                aes(x = date,
-                     y = PM2.5),
-                 color = '#dd6644') +
-      geom_smooth(data = data_daily,
+                 size = 0.4,
+                 color = '#dd6644',
+                 alpha = 0.2) +
+      geom_smooth(data = data_hourly,
                   aes(x = date,
                      y = PM2.5),
                   span = 0.2,
@@ -823,19 +805,104 @@ output$timeseries <- renderPlot({
       #annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
       #annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
       labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
-           x = 'Date',
-           title = 'Particulates Over Time',
+           x = 'Date'#,
+           #title = 'Particulates Over Time',
            #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
            ) +
       scale_x_date(limits = c(input$realdaterange[1], input$realdaterange[2])) +
       scale_y_continuous(limits = c(0, 40)) +
       theme_minimal()
+  } else if (input$chosenTimescale == "Daily"){
+      data_daily <- data_prepared |>
+        group_by(year, month, day) |>
+        summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                  `PM10` = mean(`PM10 (ug/m3)`),
+                  `AQI` = mean(`AQI US`)) |>
+        mutate(date = ymd(str_c(year, month, day, sep = '-')))
+      
+      ggplot() +
+        geom_smooth(data = PA_monthly,
+                    aes(x = date,
+                        y = PM2.5),
+                    span = 0.25,
+                    color = '#7777cc',
+                    size = 5,
+                    alpha = 0.01) +
+        geom_hline(yintercept = 9) +
+        geom_point(data = data_daily,
+                   aes(x = date,
+                       y = PM2.5),
+                   size = 0.6,
+                   color = '#dd6644') +
+        geom_line(data = data_daily,
+                  aes(x = date,
+                       y = PM2.5),
+                   color = '#dd6644') +
+        geom_smooth(data = data_daily,
+                    aes(x = date,
+                       y = PM2.5),
+                    span = 0.2,
+                   color = '#dd6644',
+                   se = F) +
+        #annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
+        #annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
+        #annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+        labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
+             x = 'Date'#,
+             #title = 'Particulates Over Time',
+             #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
+             ) +
+        scale_x_date(limits = c(input$realdaterange[1], input$realdaterange[2])) +
+        scale_y_continuous(limits = c(0, 40)) +
+        theme_minimal()
+  } else {
+      data_monthly <- data_prepared |>
+        group_by(year, month) |>
+        summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
+                  `PM10` = mean(`PM10 (ug/m3)`),
+                  `AQI` = mean(`AQI US`)) |>
+        mutate(date = ym(str_c(year, month, sep = '-')))
+      
+      ggplot() +
+        geom_smooth(data = PA_monthly,
+                    aes(x = date,
+                        y = PM2.5),
+                    span = 0.25,
+                    color = '#7777cc',
+                    size = 5,
+                    alpha = 0.01) +
+        geom_hline(yintercept = 9) +
+        geom_point(data = data_monthly,
+                   aes(x = date,
+                       y = PM2.5),
+                   size = 2,
+                   color = '#dd6644') +
+        geom_line(data = data_monthly,
+                    aes(x = date,
+                       y = PM2.5),
+                   span = 0.2,
+                   size = 1,
+                   color = '#dd6644',
+                   se = F) +
+        #annotate("text", x = 20265, y = 8, label = "EPA Standard", size = 3) +
+        #annotate("text", x = 20257, y = 11, label = "SoCal", size = 3, color = '#7777cc') +
+        #annotate("text", x = 20266, y = 21, label = "IE", size = 3, color = '#dd6644') +
+        labs(y = bquote('Daily PM2.5 Average' ~(mu*g/m^3)),
+             x = 'Date'#,
+             #title = 'Particulates Over Time',
+             #subtitle = 'IQAir Monitor Data, Public Health & Environmental Standards'
+             ) +
+        scale_x_date(limits = c(input$realdaterange[1], input$realdaterange[2])) +
+        scale_y_continuous(limits = c(0, 40)) +
+        theme_minimal()
+  }
 })
 
 
 ```
 
 ```{r}
+#| label: In/Out
 #| context: server
 library(psych)
 

@@ -88,8 +88,8 @@ coords <- monitors |>
 
 # Fill in the bounds of the dataset and the rate of data collection. 
 # end_date should be the date after (if the data ends on August 31 it should be 01Sep25)
-start_date <- '01Jan25'
-end_date <-  '07Nov25'
+start_date <- '02Feb25'
+end_date <-  '02Feb26'
 frequency <- 'hourly'
 data_info <- str_c(start_date, 
                    '-',
@@ -130,7 +130,8 @@ data <- import_data(dataset_folder)
 data_prepared <- data |>
   left_join(coords, by = 'Source') |>
   mutate(datetime = mdy_hm(`Datetime_start(UTC)`)) |>
-  mutate(month = month(datetime),
+  mutate(year = year(datetime),
+         month = month(datetime),
          day = day(datetime)) |>
   mutate(color = cut(`AQI US`,
                       labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
@@ -275,11 +276,11 @@ health_long |>
 ### Timeseries
 ```{r}
 data_daily <- data_prepared |>
-  group_by(month, day) |>
+  group_by(year, month, day) |>
   summarize(`PM2.5` = mean(`PM2.5 (ug/m3)`),
             `PM10` = mean(`PM10 (ug/m3)`),
             `AQI` = mean(`AQI US`)) |>
-  mutate(date = ymd(str_c('2025', month, day, sep = '-')))
+  mutate(date = ymd(str_c(year, month, day, sep = '-')))
 
 PA_monthly <- all_PA_data |>
   filter(pm2.5_atm < 325) |>
