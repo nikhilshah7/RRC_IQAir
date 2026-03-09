@@ -497,10 +497,6 @@ average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
 summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
-Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.
-
-In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members' homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.
-
 ```{r}
 #| label: UI
 # UI
@@ -512,7 +508,7 @@ available_variables <- c()
 
 available_Yvariables <- c()
 
-available_selections <- c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US", "SoCal", "Los Angeles", "San Diego")
+available_selections <- c("Inland Empire", "WHO Guideline", "EPA Standard", "US", "SoCal", "Los Angeles", "San Diego")
 
 available_timescales <- c("Hourly", "Daily", "Monthly")
 
@@ -520,80 +516,116 @@ available_measures <- c("PM2.5", "AQI")
 
 available_cities <- c("Bloomington", "Fontana", "Rialto")
 
+
 page_fillable(
   navset_card_tab(
     id = 'tabs',
-    nav_panel("PM2.5 Air Quality",
-              card(card_body(
-                  "
-                  While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
-                  
-                  Here, you can compare particulate matter levels from air quality monitors in different regions, alongside a couple of health standards from government bodies. 
-                  "
-              )),
-              layout_sidebar(
-                sidebar = sidebar(
-                    radioButtons("chosenMeasure", "Air Quality Measurement:", available_measures, selected = "PM2.5"),
-                    checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire 2025", "WHO Guideline", "EPA Standard", "US", "SoCal"))
-                    ),
-                plotOutput("barchartCombined")
-                )),
-    nav_panel("Air Quality Over Time",
-              card(card_body(
-                  "
-                  Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy. 
-                  
-                  Here, you can see how regional air quality changed over the first year of air monitoring.
-                  "
-              )),
-              layout_sidebar(
-                sidebar = sidebar(
-                    sliderInput(
-                      "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
+    nav_panel("Home",
+              markdown(
+                        "
+### Introduction                        
+                        
+Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.
+
+In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members' homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.
+                        "
+                ),
+img(src = "kvcr.jpg"),
+"KVCR News: Inland Empire has the worst ozone pollution in the country"
+),
+    nav_panel("Data",
+      page_fillable(
+        navset_card_tab(
+          id = 'tabs',
+          nav_panel("PM2.5 Air Quality",
+                    card(card_body(
+                        "
+                        While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
+                        
+                        Here, you can compare particulate matter levels from air quality monitors in different regions, alongside a couple of health standards from government bodies. 
+                        "
+                    )),
+                    layout_sidebar(
+                      sidebar = sidebar(
+                          radioButtons("chosenMeasure", "Air Quality Measurement:", available_measures, selected = "PM2.5"),
+                          checkboxGroupInput("chosenSelection", "Data:", available_selections, selected = c("Inland Empire", "WHO Guideline", "EPA Standard", "US", "SoCal"))
+                          ),
+                      plotOutput("barchartCombined")
+                      )),
+          nav_panel("Air Quality Over Time",
+                    card(card_body(
+                        "
+                        Air quality in the Inland Empire fluctuates over time. However, it's almost always worse than the rest of SoCal, and it's always unhealthy. 
+                        
+                        Here, you can see how regional air quality changed over the first year of air monitoring.
+                        "
+                    )),
+                    layout_sidebar(
+                      sidebar = sidebar(
+                          sliderInput(
+                            "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
+                            ),
+                          dateRangeInput("realdaterange", "Dates:", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
+                          radioButtons("chosenTimescale", "Frequency:", available_timescales, selected = "Daily")
+                          ),
+                      plotOutput("timeseries"),
+                      plotOutput("timelegend")
+                        )
                       ),
-                    dateRangeInput("realdaterange", "Dates", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Daily")
-                    ),
-                accordion(
-                  accordion_panel(
-                    "PM2.5",
-                    plotOutput("timeseries")
-                  )
-                ))),
-    nav_panel("Air Quality by City",
-              card(card_body(
-                  "
-  Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
-                  "
-              )),
-              layout_sidebar(
-                sidebar = sidebar(
-                    checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto"))
-                    ),
-                accordion(
-                  accordion_panel(
-                    "PM2.5",
-                    plotOutput("citychart")
-                  )
-                ))),
-    nav_panel("Indoor vs Outdoor",
-              card(card_body(
-                  "
-  Indoor vs outdoor PM2.5 by month"
-              )),
-              layout_sidebar(
-                sidebar = sidebar(
-                    checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
-                    radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                    ),
-                accordion(
-                  accordion_panel(
-                    "PM2.5",
-                    plotOutput("in_out_chart")
-                  )
-                )))
+          nav_panel("Air Quality by City",
+                    card(card_body(
+                        "
+        Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
+                        "
+                    )),
+                    layout_sidebar(
+                      sidebar = sidebar(
+                          checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto"))
+                          ),
+                      accordion(
+                        accordion_panel(
+                          "PM2.5",
+                          plotOutput("citychart")
+                        )
+                      ))),
+          nav_panel("Indoor vs Outdoor",
+                    card(card_body(
+                        "
+        Indoor vs outdoor PM2.5 by month"
+                    )),
+                    layout_sidebar(
+                      sidebar = sidebar(
+                          checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
+                          radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+                          ),
+                      accordion(
+                        accordion_panel(
+                          "PM2.5",
+                          plotOutput("in_out_chart")
+                        )
+                      )))
+        )
+      ))
   )
 )
+
+      
+```
+
+```{r}
+#| eval: false
+plot(1, type="n", xlab="", ylab="", xlim=c(0, 10), ylim=c(0, 10), axes=FALSE)
+legend(
+  x = 1,
+  y = 3,
+  legend = c("Inland Empire (IQAir)", "SoCal (PurpleAir)", "EPA Standard"),
+  col = c('#dd6644', '#7777cc', '#000000'),
+  pch = c(16, NA, NA), # Point types (NA for the line)
+  lty = c(NA, 1, 1), # Line types (NA for points)
+  lwd = c(NA, 5, 1), # Line widths
+  cex = 0.8, # Scale text/symbols down slightly
+  bty = "n"
+  )
 ```
 
 ```{r}
@@ -603,14 +635,24 @@ page_fillable(
 variables_names_to_ids <- c("new" = "old")
 variables_ids_to_units <- c()
 
+# pm25_colors <- c(
+#   "WHO Guideline"        = "#55cc22",
+#   "San Diego"            = "#eedd44",
+#   "US"                   = "#e9bb44",
+#   "EPA Standard"         = "#dd9944",
+#   "Los Angeles"          = "#dd6644",
+#   "SoCal"                = "#e55555",
+#   "Inland Empire"   = "#ee4433"
+# )
+
 pm25_colors <- c(
   "WHO Guideline"        = "#55cc22",
-  "San Diego"            = "#eedd44",
-  "US"                   = "#e9bb44",
-  "EPA Standard"         = "#dd9944",
-  "Los Angeles"          = "#dd6644",
+  "San Diego"            = "#55cc22",
+  "US"                   = "#55cc22",
+  "EPA Standard"         = "#999999",
+  "Los Angeles"          = "#e55555",
   "SoCal"                = "#e55555",
-  "Inland Empire 2025"   = "#ee4433"
+  "Inland Empire"   = "#e55555"
 )
 
 # 2025 Los Angeles: 9.79 PM
@@ -624,7 +666,7 @@ output$barchartCombined <- renderPlot({
     average_data <- data_prepared |>
       filter(location == "outdoor") |>
       summarize(
-        x = "Inland Empire 2025",
+        x = "Inland Empire",
         average_pm25 = mean(`PM2.5 (ug/m3)`, na.rm = TRUE)
       ) |>
       bind_rows(
@@ -662,7 +704,7 @@ output$barchartCombined <- renderPlot({
     average_data_AQI <- data_prepared |>
       filter(location == "outdoor") |>
       summarize(
-        x = "Inland Empire 2025",
+        x = "Inland Empire",
         average_aqi = mean(`AQI US`, na.rm = TRUE)
       ) |>
       bind_rows(
@@ -896,6 +938,22 @@ output$timeseries <- renderPlot({
         scale_y_continuous(limits = c(0, 40)) +
         theme_minimal()
   }
+})
+
+
+output$timelegend <- renderPlot({
+  par(mar = c(0,0,0,0))
+  plot(1, type="n", xlab="", ylab="", xlim=c(0, 11), ylim=c(0, 11), axes=FALSE)
+  legend(
+  x = 0,
+  y = 11,
+  legend = c("Inland Empire (IQAir)", "SoCal (PurpleAir)", "EPA Standard"),
+  col = c('#dd6644', '#7777cc', '#000000'),
+  pch = c(16, NA, NA),
+  lty = c(NA, 1, 1),
+  lwd = c(NA, 5, 1),
+  bty = "n"
+  )
 })
 
 
