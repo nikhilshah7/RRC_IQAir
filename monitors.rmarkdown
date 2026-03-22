@@ -3,11 +3,15 @@ title: "Air Monitor Data Wrangling and Visualizations"
 format: html
 ---
 
+
+
 ## Libraries
 
 - tidyverse handles all the data wrangling
 - readxl is for reading in the manually-edited master list of air monitors
 - tidygeocoder adds coordinates based on the addresses of monitors
+
+
 
 ```{r}
 #| label: Libraries
@@ -17,6 +21,8 @@ library(readxl)
 library(tidygeocoder)
 library(writexl)
 ```
+
+
 
 ## Monitor Master List
 
@@ -36,6 +42,8 @@ library(writexl)
   - the problem is when new monitors get added they go to the top so Cinnamon Dr isn't always going to be the 33rd row
   - I would like for it to figure out which row is Cinnamon and add it there
   - Better yet using the geocoder with another method to add it to the missing rows
+
+
 
 ```{r}
 #| label: Monitor Master List
@@ -69,6 +77,8 @@ coords <- monitors |>
          Source)
 ```
 
+
+
 ## Full Air Quality Dataset
 
 - Needs input of the dataset parameters (dates and frequency), then it should be able to handle the creation of the main dataset on its own
@@ -78,6 +88,8 @@ coords <- monitors |>
 - Imports data into RStudio
 - Adds coordinate columns
 - Should use lubridate to add a month column/whatever else if need be
+
+
 
 ```{r}
 #| label: Full Air Quality Dataset
@@ -152,10 +164,14 @@ data_prepared <- data |>
 
 ```
 
+
+
 ## Plots
 
 - Very basic timeseries scatterplots
 - TBD
+
+
 
 ```{r}
 #| label: Plots
@@ -225,7 +241,11 @@ data_prepared |>
 
 
 ```
+
+
 ## Public Health Implications
+
+
 
 ```{r}
 IE <- average$average_pm25[1]
@@ -273,7 +293,11 @@ health_long |>
   geom_col(position = position_dodge(width = 0.9)) 
 ```
 
+
+
 ### Timeseries
+
+
 ```{r}
 data_daily <- data_prepared |>
   group_by(year, month, day) |>
@@ -334,26 +358,8 @@ ggplot() +
 # summarize mean of aqi pm2.5 pm10
 # create geomsmooth
 ```
-```{r}
-health <- data.frame(condition = c(rep(c("Lung Cancer", "Lung Cancer Mortality", "Pneumonia", "Childhood Asthma"), each = 2)),
-                     quality = c(rep(c("Average United States Resident", "Average Inland Empire Resident"), times = 4)),
-                     risk = c(100, 33, 100, 18, 100, 15, 100, 16),
-                     height = c(NA, 116.5, NA, 109, NA, 107.5, NA, 108),
-                     increase = c(NA, "+33%", NA, "+18%", NA, "+15%", NA, "+16%"))
 
 
-health |>
-  ggplot() +
-  geom_col(aes(x = condition, y = risk, fill = quality),
-           stat = 'identity') +
-  geom_label(aes(x = condition, y = height, label = increase)) +
-  scale_fill_manual(values = c("Average Inland Empire Resident" = "#cc3333", "Average United States Resident" = "#999999")) +
-  theme_bw() +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        axis.text.y = element_blank(),
-        legend.title = element_blank())
-```
 
 
 ## Maps
@@ -364,6 +370,8 @@ health |>
 - Add a time slider to be able to see the data change over time
 - Use the API to have it update in real time
 - Host a shiny app online
+
+
 
 ```{r}
 library(leaflet)
@@ -392,8 +400,8 @@ nov_3_high <- daily_per_monitor |>
   filter(year == 2025 & month == 11 & day == 3) |>
   drop_na()
 
-nov_17_low_rain <- daily_per_monitor |>
-  filter(year == 2025 & month == 11 & day == 17) |>
+nov_16_low_rain <- daily_per_monitor |>
+  filter(year == 2025 & month == 11 & day == 16) |>
   drop_na()
 
 leaflet(nov_3_high) |>
@@ -407,24 +415,7 @@ leaflet(nov_3_high) |>
       textOnly = FALSE,
       style = list(
         "color" = "white",
-        "background" = '#fe6f00',  
-        "border-radius" = "50%",
-        "text-align" = "center"
-      ))
-    )
-
-leaflet(nov_17_low_rain) |>
-  addTiles() |>
-  addLabelOnlyMarkers(
-    lat = ~lat, lng = ~long,
-    label = ~as.character(AQI),
-    labelOptions = labelOptions(
-      noHide = TRUE,
-      direction = "center",
-      textOnly = FALSE,
-      style = list(
-        "color" = "white",
-        "background" = '#a6e020',  
+        "background" = '#dd9944',  
         "border-radius" = "50%",
         "text-align" = "center"
       ))
@@ -521,7 +512,11 @@ stats_wide |>
   geom_col(position = "dodge") 
            
 ```
+
+
 Sorting the sites by location to then get summary stats for our 11/15 data sharing! 
+
+
 ```{r}
 
 addressandserialnumbers <- monitors %>%
@@ -583,7 +578,11 @@ ggplot(data=citysummary,mapping=aes(y=`AQI US_mean`))+
   geom_point(mapping=aes(color=city),size=5)
 
 ```
+
+
 Starting a new chunk of data visualizations by month from the data! (possibly treatment by city or not), using hourly data instead of monthly
+
+
 ```{r}
 
 
@@ -591,7 +590,11 @@ Starting a new chunk of data visualizations by month from the data! (possibly tr
 
 ```
 
+
+
 Purple Air Data! Each monitor is a separate sheet so merging them all 
+
+
 
 ```{r}
 library(readr)
@@ -634,4 +637,7 @@ average_PM10 <-mean(under_604_pm10$pm10.0_atm) # 14.18
 summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
+
+
 ```
+

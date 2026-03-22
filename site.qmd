@@ -15,6 +15,7 @@ library(tidygeocoder)
 library(writexl)
 library(rsconnect)
 library(bslib)
+library(leaflet)
 ```
 
 ```{r}
@@ -498,6 +499,23 @@ summary(under_604_pm10$pm10.0_atm) # median is 10.2
 ```
 
 ```{r}
+#| label: Map Prep
+#| warning: false
+daily_per_monitor <- data_prepared |>
+  filter(location == 'outdoor') |>
+  group_by(year, month, day, lat, long) |>
+  summarize(`PM2.5` = round(mean(`PM2.5 (ug/m3)`), 0),
+            `PM10` = round(mean(`PM10 (ug/m3)`), 0),
+            `AQI` = round(mean(`AQI US`), 0)) |>
+  mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+  mutate(color = cut(AQI,
+                     labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
+                     breaks <- c(0, 50, 100, 150, 200, 300, Inf),
+                     right = T))
+```
+
+
+```{r}
 #| label: UI
 # UI
 #| context: ui
@@ -521,19 +539,76 @@ page_fillable(
   navset_card_tab(
     id = 'tabs',
     nav_panel("Home",
-              markdown(
-                        "
-### Introduction                        
+    
+markdown("![KVCR News: Inland Empire has the worst ozone pollution in the country](www/kvcr_small.jpg)"),
+
+markdown("
+**KVCR News: Inland Empire has the worst ozone pollution in the country**"),
+
+markdown("---"),
                         
+markdown("
+### Introduction
+
 Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.
 
 In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members' homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.
-                        "
-                ),
-img(src = "kvcr.jpg"),
-"KVCR News: Inland Empire has the worst ozone pollution in the country"
+
+### Dashboard Guide
+
+* **Map** will show you all the data from the community air monitors on a map over the last year.
+* **Writeup** contains a more in-depth description of the problems of warehouse expansion, air quality, data accessibility, and public health.
+* **Terms** contains an explanation of any terms and acronyms that you might find unfamiliar.
+* **Interactive Data** contains a few extra charts that you can play around with to see the data in other ways.
+"),
+
+# end of home
 ),
-    nav_panel("Data",
+
+    nav_panel("Map",
+      page_fillable(
+        sliderInput(
+          "date", "Date:", min = min(daily_per_monitor$date), max = max(daily_per_monitor$date), value = max(daily_per_monitor$date), timeFormat = "%m-%d-%Y"
+        ),
+        dateInput("realdate", "", min = min(daily_per_monitor$date), max = max(daily_per_monitor$date), value = max(daily_per_monitor$date)),
+        leafletOutput("map")
+      )
+      
+      
+# end of map      
+),
+
+    nav_panel("Writeup",
+              
+markdown("
+### Introduction                        
+                        
+The Inland Empire is among the most polluted areas in the country due to decades of extensive warehousing and trucking through the region. However, it is severely underrepresented within many air monitoring networks, which makes the air quality problem seem less important than it really is, making it more difficult to make progress with improvements and solutions.
+
+PurpleAir, a popular hub for community-sourced air monitoring, displays this lack of information. Cities in Southern California with higher average incomes, larger white populations, and less industrial development and air pollution have far more air monitors per capita. The cities of Fontana, Bloomington, and Rialto, with a total population of about 350,000, only have 2 air monitors. 
+"),
+
+
+# end of writeup
+),
+    nav_panel("Terms",
+              
+markdown("
+| **Term** | **Explanation** |
+| --- | --- |
+| AQI | \"Air Quality Index\". A measure of pollutants in the air, including particulates, ozone, nitrogen oxides, and more. |
+| PM2.5 | Particulate matter less than 2.5 microns. Usually emitted from vehicles and factories. |
+| PM10 | Larger particles. Usually dust or soot particles from fires. |
+"),
+
+
+
+
+
+
+# end of terms
+),
+    nav_panel("Interactive Data",
       page_fillable(
         navset_card_tab(
           id = 'tabs',
@@ -563,9 +638,9 @@ img(src = "kvcr.jpg"),
                     layout_sidebar(
                       sidebar = sidebar(
                           sliderInput(
-                            "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%Y-%m-%d"
+                            "daterange", "Dates:", min = min(data_daily$date), max = max(data_daily$date), value = c(min(data_daily$date), max(data_daily$date)), timeFormat = "%m-%d-%Y"
                             ),
-                          dateRangeInput("realdaterange", "Dates:", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
+                          dateRangeInput("realdaterange", "", start = min(data_daily$date), end = max(data_daily$date), min = min(data_daily$date), max = max(data_daily$date)),
                           radioButtons("chosenTimescale", "Frequency:", available_timescales, selected = "Daily")
                           ),
                       plotOutput("timeseries"),
@@ -626,6 +701,73 @@ legend(
   cex = 0.8, # Scale text/symbols down slightly
   bty = "n"
   )
+```
+
+
+```{r}
+#| label: Images
+#| context: server
+
+output$kvcr <- renderImage({
+  list(
+    (src = "www/kvcr.jpg")
+  )
+},
+deleteFile = F
+)
+```
+
+```{r}
+#| label: Map
+#| context: server
+
+daily_per_monitor <- data_prepared |>
+  filter(location == 'outdoor') |>
+  group_by(year, month, day, lat, long) |>
+  summarize(`PM2.5` = round(mean(`PM2.5 (ug/m3)`), 0),
+            `PM10` = round(mean(`PM10 (ug/m3)`), 0),
+            `AQI` = round(mean(`AQI US`), 0)) |>
+  mutate(date = ymd(str_c(year, month, day, sep = '-'))) |>
+  mutate(color = cut(AQI,
+                     labels = c('green', 'yellow', 'orange', 'red', 'purple', 'maroon'),
+                     breaks <- c(0, 50, 100, 150, 200, 300, Inf),
+                     right = T))
+
+colors <- c('green', 'yellow', 'orange', 'red', 'purple', 'maroon')
+aqi_pal = colorFactor(colors, domain = daily_per_monitor$color)
+
+output$map <- renderLeaflet({
+  
+  daily_per_monitor |>
+    filter(year == year(input$date) & month == month(input$date) & day == day(input$date)) |>
+    leaflet() |>
+      addTiles() |>
+      addCircleMarkers(
+        lat = ~lat, lng = ~long,
+        #label = ~as.character(AQI),
+        color = ~aqi_pal(color),
+        stroke = FALSE, 
+        fillOpacity = 1,
+        radius = 14) |>
+      addLabelOnlyMarkers(
+        lat = ~lat, lng = ~long,
+        label = ~as.character(AQI),
+        labelOptions = labelOptions(
+          noHide = TRUE,
+          direction = "center",
+          textOnly = TRUE,
+          style = list(
+            "textsize" = 30,
+            "color" = "black",
+            "background" = ~color,
+            "border-radius" = "50%",
+            "text-align" = "center",
+            "font-weight" = "bold"
+          )
+        )
+      )
+}
+)
 ```
 
 ```{r}
@@ -776,7 +918,6 @@ output$citychart <- renderPlot({
 })
 
 ```
-
 
 ```{r}
 #| label: Time
