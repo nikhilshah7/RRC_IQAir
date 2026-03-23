@@ -359,6 +359,47 @@ ggplot() +
 # create geomsmooth
 ```
 
+```{r}
+health <- data.frame(condition = c(rep(c("Lung Cancer", "Lung Cancer Mortality", "Pneumonia", "Childhood Asthma"), each = 2)),
+                     quality = c(rep(c("Average United States Resident", "Average Inland Empire Resident"), times = 4)),
+                     risk = c(100, 33, 100, 18, 100, 15, 100, 16),
+                     height = c(NA, 116.5, NA, 109, NA, 107.5, NA, 108),
+                     increase = c(NA, "+33%", NA, "+18%", NA, "+15%", NA, "+16%"))
+
+
+health |>
+  ggplot() +
+  geom_col(aes(x = condition, y = risk, fill = quality),
+           stat = 'identity') +
+  geom_label(aes(x = condition, y = height, label = increase)) +
+  scale_fill_manual(values = c("Average Inland Empire Resident" = "#cc3333", "Average United States Resident" = "#999999")) +
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.title = element_blank())
+```
+
+```{r}
+survey <- read_excel("data/private/survey.xlsx", 1)
+  
+survey |>
+  ggplot(aes(x = `How would you rate your area's air quality? / ¿Cómo describiría la calidad del aire de su zona?`)) +
+  # geom_dotplot(method = 'histodot',
+  #              binaxis = "x", 
+  #              stackdir = "center", 
+  #              position = "dodge", # Side-by-side
+  #              binwidth = 0.2)
+  geom_histogram(aes(fill = x), 
+                 binwidth = 0.5) +
+  labs(y = "Number of Respondents",
+       x = "Rating") +
+  scale_x_continuous(breaks = seq(1, 10, by = 1)) +
+  theme_classic()
+  
+# "On a scale of 1 to 10, how would you rate your area's air quality?"
+```
+
 
 
 
@@ -400,8 +441,8 @@ nov_3_high <- daily_per_monitor |>
   filter(year == 2025 & month == 11 & day == 3) |>
   drop_na()
 
-nov_16_low_rain <- daily_per_monitor |>
-  filter(year == 2025 & month == 11 & day == 16) |>
+nov_17_low_rain <- daily_per_monitor |>
+  filter(year == 2025 & month == 11 & day == 17) |>
   drop_na()
 
 leaflet(nov_3_high) |>
@@ -415,7 +456,24 @@ leaflet(nov_3_high) |>
       textOnly = FALSE,
       style = list(
         "color" = "white",
-        "background" = '#dd9944',  
+        "background" = '#fe6f00',  
+        "border-radius" = "50%",
+        "text-align" = "center"
+      ))
+    )
+
+leaflet(nov_17_low_rain) |>
+  addTiles() |>
+  addLabelOnlyMarkers(
+    lat = ~lat, lng = ~long,
+    label = ~as.character(AQI),
+    labelOptions = labelOptions(
+      noHide = TRUE,
+      direction = "center",
+      textOnly = FALSE,
+      style = list(
+        "color" = "white",
+        "background" = '#a6e020',  
         "border-radius" = "50%",
         "text-align" = "center"
       ))

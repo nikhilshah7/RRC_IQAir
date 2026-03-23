@@ -355,6 +355,25 @@ health |>
         legend.title = element_blank())
 ```
 
+```{r}
+survey <- read_excel("data/private/survey.xlsx", 1)
+  
+survey |>
+  ggplot(aes(x = `How would you rate your area's air quality? / ¿Cómo describiría la calidad del aire de su zona?`)) +
+  geom_histogram(aes(fill = after_stat(x)), 
+                 binwidth = 0.5) +
+  labs(y = "Number of Respondents",
+       x = "Rating",
+       title = "\"On a scale of 1 to 10, how would you rate your area's air quality?\"",
+       subtitle = "CCAEJ/IQAir Survey Data, 2025-2026") +
+  scale_x_continuous(breaks = seq(1, 10, by = 1), limits = c(0.5, 10)) +
+  scale_fill_gradient(low = "#CD3232", high = "#32CD32") +
+  theme_classic() +
+  theme(legend.position = 'none') 
+  
+# "On a scale of 1 to 10, how would you rate your area's air quality?"
+```
+
 
 ## Maps
 

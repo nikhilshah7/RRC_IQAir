@@ -522,10 +522,6 @@ daily_per_monitor <- data_prepared |>
 #| warning: false
 #| message: false
 
-available_variables <- c()
-
-available_Yvariables <- c()
-
 available_selections <- c("Inland Empire", "WHO Guideline", "EPA Standard", "US", "SoCal", "Los Angeles", "San Diego")
 
 available_timescales <- c("Hourly", "Daily", "Monthly")
@@ -543,7 +539,7 @@ page_fillable(
 markdown("![KVCR News: Inland Empire has the worst ozone pollution in the country](www/kvcr_small.jpg)"),
 
 markdown("
-**KVCR News: Inland Empire has the worst ozone pollution in the country**"),
+**KVCR News: Inland Empire has the worst ozone pollution in the country.**"),
 
 markdown("---"),
                         
@@ -556,10 +552,24 @@ In a partnership between the Robert Redford Conservancy at Pitzer College, the C
 
 ### Dashboard Guide
 
-* **Map** will show you all the data from the community air monitors on a map over the last year.
+* **Map** will show you all the data from the community air monitors on a map. You can look back at air quality in the past up to February 2025.
 * **Writeup** contains a more in-depth description of the problems of warehouse expansion, air quality, data accessibility, and public health.
-* **Terms** contains an explanation of any terms and acronyms that you might find unfamiliar.
 * **Interactive Data** contains a few extra charts that you can play around with to see the data in other ways.
+
+### Resources and Documentation
+* **Air Quality Monitoring Platforms**
+  * IQAir: https://www.iqair.com
+  * PurpleAir: https://www2.purpleair.com/
+  * OpenAQ: https://openaq.org/
+* **GitHub**
+  * https://github.com/nikhilshah7/RRC_IQAir
+* **Partners**
+  * Robert Redford Conservancy: https://www.pitzer.edu/offices/redfordconservancy
+  * Center for Community Action and Environmental Justice: https://www.ccaej.org/
+  * IQAir: https://www.iqair.com/us/support/contact-us
+* **Contact**
+  * Robert Redford Conservancy: rrc@pitzer.edu
+  * Center for Community Action and Environmental Justice: admin@ccaej.org
 "),
 
 # end of home
@@ -570,45 +580,96 @@ In a partnership between the Robert Redford Conservancy at Pitzer College, the C
         sliderInput(
           "date", "Date:", min = min(daily_per_monitor$date), max = max(daily_per_monitor$date), value = max(daily_per_monitor$date), timeFormat = "%m-%d-%Y"
         ),
-        dateInput("realdate", "", min = min(daily_per_monitor$date), max = max(daily_per_monitor$date), value = max(daily_per_monitor$date)),
+        # dateInput("realdate", "", min = min(daily_per_monitor$date), max = max(daily_per_monitor$date), value = max(daily_per_monitor$date)),
         leafletOutput("map")
       )
-      
-      
 # end of map      
 ),
 
     nav_panel("Writeup",
               
 markdown("
-### Introduction                        
+### Data Accessibility                        
                         
 The Inland Empire is among the most polluted areas in the country due to decades of extensive warehousing and trucking through the region. However, it is severely underrepresented within many air monitoring networks, which makes the air quality problem seem less important than it really is, making it more difficult to make progress with improvements and solutions.
 
 PurpleAir, a popular hub for community-sourced air monitoring, displays this lack of information. Cities in Southern California with higher average incomes, larger white populations, and less industrial development and air pollution have far more air monitors per capita. The cities of Fontana, Bloomington, and Rialto, with a total population of about 350,000, only have 2 air monitors. 
 "),
 
+fluidRow(column(12, markdown("![PurpleAir](www/purpleair_small.png)"))),
 
-# end of writeup
-),
-    nav_panel("Terms",
-              
 markdown("
-| **Term** | **Explanation** |
-| --- | --- |
-| AQI | \"Air Quality Index\". A measure of pollutants in the air, including particulates, ozone, nitrogen oxides, and more. |
-| PM2.5 | Particulate matter less than 2.5 microns. Usually emitted from vehicles and factories. |
-| PM10 | Larger particles. Usually dust or soot particles from fires. |
+This initiative helps to improve access to important air quality data in cities affected by warehouse and trucking expansion. We can see patterns and spikes that occur throughout the year, and see how bad air quality in the Inland Empire can get.
 "),
 
-
-
-
-
-
-# end of terms
+fluidRow(
+  column(6,
+    markdown("![Heat](www/heat_small.png)"),
+    markdown("**11/03/25: During a heat wave, air quality is bad enough that it's unsafe to go outside.**")
+  ),
+  column(6,
+    markdown("![Rain](www/rain_small.png)"),
+    markdown("**11/17/25: After it rains, the air is much cleaner.**")
+  )
 ),
+
+markdown("
+### Health Impacts
+
+While air pollution is known to make residents’ everyday quality of life worse, there are also many potential long-term health concerns in both children and adults who live, work, and attend school in places with poor air quality for months or years.
+
+Medical research finds that the risk of many lung conditions is proportionally higher as the amount of particulate matter in the air gets higher. Many medical papers define a \"hazard ratio\" which typically states that the likelihood of a patient developing a  condition increases by a certain percentage for each additional 5 µg/m³ of PM2.5 (Raaschou-Nielsen et al., 2013, Turner et al., 2011, Katanoda et al., 2011, Tecer et al., 2007). In 2025, the Inland Empire had about 7.5 µg/m³ more than the rest of the United States on average.
+"),
+
+plotOutput('Health'),
+
+markdown("
+People living in low-income areas are at even higher risks to develop lung diseases due to reduced access to medical care and sufficient air filters and HVAC technology for their homes.
+
+CCAEJ community surveying revealed that air quality negatively impacts a very large proportion of community members. Out of 74 Inland Empire residents surveyed, 77% said their quality of life had been negatively impacted by poor air quality in their area in numerous ways, including lung problems, being unable to go outside, having trouble exercising, and children missing school. 62% reported that they or a family member had experienced new or exacerbated medical concerns such as asthma, allergies, eczema, or irritation of the eyes. Community members have expressed concern for the capability of institutions to respond to public health crises following mismanagement of the Covid-19 pandemic.
+"),
+
+plotOutput('Survey'),
+
+markdown("
+### Further Implications
+
+Warehouse development has coincided with significant degradation of infrastructure in recent years. Power is often allocated toward industrial development rather than residential areas. Blackouts are increasingly common, and many community members report that they can last for days. Outages frequently occur due to heavy construction loads or poor weather, and in the summer, power may be cut off without warning to reduce usage. One resident mentioned that their \"air filter broke because of power surges,\" and that they can't afford a new one. Poor ventilation in many homes in Bloomington and elsewhere make it difficult for people to reduce unclean air in their homes, and there is often a cost barrier to installing high-quality HVAC systems.
+"),
+
+fluidRow(column(12, markdown("![Outage](www/outage_small.png)"))),
+
+markdown("
+**KVCR News: Extreme winds trigger thousands of power shutoffs for So Cal Edison customers.**
+
+### Solutions
+
+Stronger evidence for region-wide poor air quality throughout the year can help to build up cases for warehouse development and truck routes being actively harmful to public health and quality of life for everyone who lives in the Inland Empire.
+
+There are many potential avenues for solutions through municipal and regional government. Community organizing through the Freight Coalition has resulted in action being taken to realign truck routes in Riverside County to avoid residential areas and sensitive receptors such as schools. 
+
+Future solutions may involve bolstering public health initiatives to alleviate stress during poor air quality events, improving reliability and redundancy of electricity systems to avoid blackouts in residential areas, and improving the ventilation and filtration systems in homes.
+
+#### References
+* Vincent, K. (2019, April 24). Report: Inland Empire Has The Worst Air Pollution In The Nation... Even Worse Than LA. KVCR News. https://www.kvcrnews.org/local-environment/2019-04-24/report-inland-empire-has-the-worst-air-pollution-in-the-nation-even-worse-than-la
+* Stone, E. (2025, January 9). Extreme winds trigger thousands of power shutoffs for So Cal Edison customers. KVCR News. https://www.kvcrnews.org/local-news/2025-01-08/extreme-winds-trigger-thousands-of-power-shutoffs-for-so-cal-edison-customers
+* Katanoda, K., Sobue, T., Satoh, H., Tajima, K., Suzuki, T., Nakatsuka, H., Takezaki, T., Nakayama, T., Nitta, H., Tanabe, K., & Tominaga, S. (2011). An association between long-term exposure to ambient air pollution and mortality from lung cancer and respiratory diseases in Japan. Journal of Epidemiology, 21(2), 132–143. https://doi.org/10.2188/jea.je20100098
+* Raaschou-Nielsen, O., Andersen, Z. J., Beelen, R., Samoli, E., Stafoggia, M., Weinmayr, G., Hoffmann, B., Fischer, P., Nieuwenhuijsen, M. J., Brunekreef, B., Xun, W. W., Katsouyanni, K., Dimakopoulou, K., Sommar, J., Forsberg, B., Modig, L., Oudin, A., Oftedal, B., Schwarze, P. E., … Hoek, G. (2013). Air pollution and lung cancer incidence in 17 European cohorts: Prospective analyses from the European Study of Cohorts for Air Pollution Effects (ESCAPE). The Lancet. Oncology, 14(9), 813–822. https://doi.org/10.1016/S1470-2045(13)70279-1
+* Tecer, L. H., Alagha, O., Karaca, F., Tuncel, G., & Eldes, N. (2008). Particulate Matter (PM 2.5 , PM 10-2.5 , and PM 10 ) and Children’s Hospital Admissions for Asthma and Respiratory Diseases: A Bidirectional Case-Crossover Study. Journal of Toxicology and Environmental Health. Part A, 71, 512–520. https://doi.org/10.1080/15287390801907459
+* Turner, M. C., Krewski, D., Pope, C. A., Chen, Y., Gapstur, S. M., & Thun, M. J. (2011). Long-term ambient fine particulate matter air pollution and lung cancer in a large cohort of never-smokers. American Journal of Respiratory and Critical Care Medicine, 184(12), 1374–1381. https://doi.org/10.1164/rccm.201106-1011OC
+")
+# end of writeup
+),
+
     nav_panel("Interactive Data",
+      markdown("
+| **Term** | **Explanation** |
+| --- | --- |
+| AQI | \"Air Quality Index\". A measure of pollutants in the air, including particulates, ozone, nitrogen oxides, and more. AQI of 50 or higher is considered unhealthy for long-term exposure by most organizations. |
+| PM2.5 | Particulate matter less than 2.5 microns. Usually emitted from vehicles and factories. PM2.5 of 9 µg/m³ or higher is considered unhealthy for long-term exposure by most organizations. |
+| PM10 | Larger particles. Usually dust or soot particles from fires. |
+| µg/m³ | Micrograms per cubic meter. Used as a measure for PM concentration in the air. |
+"),
       page_fillable(
         navset_card_tab(
           id = 'tabs',
@@ -647,38 +708,51 @@ markdown("
                       plotOutput("timelegend")
                         )
                       ),
-          nav_panel("Air Quality by City",
-                    card(card_body(
-                        "
-        Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
-                        "
-                    )),
-                    layout_sidebar(
-                      sidebar = sidebar(
-                          checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto"))
-                          ),
+        #   nav_panel("Air Quality by City",
+        #             card(card_body(
+        #                 "
+        # Bloomington, Fontana, and Rialto are neighboring cities. Despite slightly different levels of warehouse burdening, each city experiences very similar trends related to air quality and particulates.
+        #                 "
+        #             )),
+        #             layout_sidebar(
+        #               sidebar = sidebar(
+        #                   checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto"))
+        #                   ),
+        #               accordion(
+        #                 accordion_panel(
+        #                   "PM2.5",
+        #                   plotOutput("citychart")
+        #                 )
+        #               ))),
+        #   nav_panel("Indoor vs Outdoor",
+        #             card(card_body(
+        #                 "
+        # Indoor vs outdoor PM2.5 by month"
+        #             )),
+        #             layout_sidebar(
+        #               sidebar = sidebar(
+        #                   checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
+        #                   radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
+        #                   ),
+        #               accordion(
+        #                 accordion_panel(
+        #                   "PM2.5",
+        #                   plotOutput("in_out_chart")
+        #                 )
+        #               ))),
+          nav_panel("...And More!",
                       accordion(
                         accordion_panel(
-                          "PM2.5",
+                          "Fontana vs Bloomington vs Rialto",
                           plotOutput("citychart")
                         )
-                      ))),
-          nav_panel("Indoor vs Outdoor",
-                    card(card_body(
-                        "
-        Indoor vs outdoor PM2.5 by month"
-                    )),
-                    layout_sidebar(
-                      sidebar = sidebar(
-                          checkboxGroupInput("chosenCity", "Cities:", available_cities, selected = c("Bloomington", "Fontana", "Rialto")),
-                          radioButtons("chosenTimescale", "Temporal Resolution:", available_timescales, selected = "Weekly")
-                          ),
+                      ),
                       accordion(
                         accordion_panel(
-                          "PM2.5",
+                          "Indoor vs Outdoor",
                           plotOutput("in_out_chart")
                         )
-                      )))
+                      ))
         )
       ))
   )
@@ -688,7 +762,10 @@ markdown("
 ```
 
 ```{r}
+#| label: Timeseries Label
 #| eval: false
+#| message: false
+#| warning: false
 plot(1, type="n", xlab="", ylab="", xlim=c(0, 10), ylim=c(0, 10), axes=FALSE)
 legend(
   x = 1,
@@ -701,20 +778,6 @@ legend(
   cex = 0.8, # Scale text/symbols down slightly
   bty = "n"
   )
-```
-
-
-```{r}
-#| label: Images
-#| context: server
-
-output$kvcr <- renderImage({
-  list(
-    (src = "www/kvcr.jpg")
-  )
-},
-deleteFile = F
-)
 ```
 
 ```{r}
@@ -769,6 +832,53 @@ output$map <- renderLeaflet({
 }
 )
 ```
+
+```{r}
+#| label: Writeup Plots
+#| context: server
+
+health <- data.frame(condition = c(rep(c("Lung Cancer", "Lung Cancer Mortality", "Pneumonia", "Childhood Asthma"), each = 2)),
+                     quality = c(rep(c("Average United States Resident", "Average Inland Empire Resident"), times = 4)),
+                     risk = c(100, 28, 100, 15, 100, 13, 100, 13),
+                     height = c(NA, 114, NA, 107.5, NA, 106.5, NA, 106.5),
+                     increase = c(NA, "+28%", NA, "+15%", NA, "+13%", NA, "+13%"))
+
+output$Health <- renderPlot({
+  
+    ggplot(health) +
+      geom_col(aes(x = condition, y = risk, fill = quality),
+               stat = 'identity') +
+      geom_label(aes(x = condition, y = height, label = increase)) +
+      scale_fill_manual(values = c("Average Inland Empire Resident" = "#cc3333", "Average United States Resident" = "#999999")) +
+      theme_bw() +
+      theme(axis.title.x = element_blank(),
+            axis.title.y = element_blank(),
+            axis.text.y = element_blank(),
+            legend.title = element_blank())
+  
+})
+
+survey <- read_excel("data/private/survey.xlsx", 1)
+  
+output$Survey <- renderPlot({
+  
+  survey |>
+    ggplot(aes(x = `How would you rate your area's air quality? / ¿Cómo describiría la calidad del aire de su zona?`)) +
+    geom_histogram(aes(fill = after_stat(x)), 
+                   binwidth = 0.5) +
+    labs(y = "Number of Respondents",
+         x = "Rating",
+         title = "\"On a scale of 1 to 10, how would you rate your area's air quality?\"",
+         subtitle = "CCAEJ/IQAir Survey Data, 2025-2026") +
+    scale_x_continuous(breaks = seq(1, 10, by = 1), limits = c(0.5, 10)) +
+    scale_fill_gradient(low = "#CD3232", high = "#32CD32") +
+    theme_classic() +
+    theme(legend.position = 'none') 
+  
+})
+
+```
+
 
 ```{r}
 #| label: Bar

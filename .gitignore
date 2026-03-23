@@ -51,4 +51,9 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
+<<<<<<< HEAD
 data/private/
+=======
+# Identifying Data
+data/private
+>>>>>>> 0c09123 (site mostly ready?????? writeup written up)
