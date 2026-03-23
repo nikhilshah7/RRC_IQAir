@@ -1,31 +1,24 @@
 # Robert Redford Conservancy IQAir Project
 
-## IMPORTANT: Data should be kept private, participants' names should not be publicly attached to the project or any addresses used.
+This project aims to analyze patterns of air quality and their causes in California's Inland Empire, and reduce inequity in data availability in socioeconomically-disadvantaged regions, with the help of over 50 air monitors at the homes of community members. 
+
+This is a data dashboard that contains several interactive visualizations of over a year of air quality data from those homes, as well as a full writeup of our findings and analysis.
+
+## [nikhilshah.shinyapps.io/rrc_iqair](https://nikhilshah.shinyapps.io/rrc_iqair/)
 
 ### MAJOR FINDINGS
 
  * Average PM2.5 concentration in the IE is 200% higher than the WHO health standard and 67% higher than the CA standard
- * 96.8% of data points at IE households do not meet the California standard of 9 ug/m3 PM2.5
+ * 96.8% of data points at IE households do not meet the California standard of 9 μg/m3 PM2.5
+ * 77% of survey respondents say their quality of life is negatively impacted by air quality
+ * 62% say they or a family member have had health problems worsen from air quality (asthma, eczema, allergies)
  
 ### IMPLICATIONS
 
- * IE PM2.5 = 15.02 μg/m3, US PM2.5 = 7.08 μg/m3 —> higher risk of medical conditions
-   * 2% increase in respiratory disease risk (Zanobetti et al., 2009)
-   * 6% increase in lung cancer mortality (Pope et al., 2002)
-   * 30% increase in lung cancer risk (Raaschou-Nielsen et al., 2013)
-   * 101% increase in lung adenocarcinoma risk (Raaschou-Nielsen et al., 2013)
- * These direct, controlled correlation are sometimes minor, but combined with economic factors leading to lower access to healthcare the effect is magnified
-
-### TO DO
-
- * Match 6 missing monitors to addresses
- * Figure out how to use the API
- * Create plots
- * Create maps
- * Create an interactive and accessible dashboard that allows customization of variables
- * Budget for shiny app hosting and API access if necessary
- 
-### DONE
-
-- Get the IQAir data imports
-- Verify that the wrangling pipeline works
+ * Inland Empire PM2.5: 14.6 μg/m3
+ * US Average PM2.5: 7.08 μg/m3
+   * 28% increase in lung cancer risk (Raaschou-Nielsen et al., 2013)
+   * 15% increase in lung cancer mortality risk (Katanoda et al., 2011)
+   * 13% increase in pneumonia risk (Turner et al., 2011)
+   * 13% increase in childhood asthma cases (Tecer et al., 2007)
+ * These direct, controlled correlations are sometimes minor, but combined with effects from other vehicle-and-industrial-derived pollutants, as well as economic factors leading to lower access to healthcare, the effect is magnified
