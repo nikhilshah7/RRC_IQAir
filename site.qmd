@@ -546,15 +546,15 @@ markdown("---"),
 markdown("
 ### Introduction
 
-Southern California consistently experiences the worst air quality in the country. This is especially clear in the Inland Empire, where there is heavy warehousing and constant truck traffic near residential areas. Despite air quality being worse, very little data is collected in this region. You can look at any government or community air monitor map and see a huge gap in data east of Los Angeles, even though millions of people live there and experience unhealthy air every day.
+Southern California consistently experiences the worst air quality in the country. In San Bernardino and Riverside counties, known as the Inland Empire, heavy warehousing and constant truck traffic worsen air pollution in residential areas. However, government and community air quality monitoring is lacking in this region. There is limited data of the unhealthy air that millions of people east of Los Angeles breathe daily. 
 
-In a partnership between the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, 58 particulate air quality monitors have been installed at community members' homes. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze all of that collected data.
+In a partnership with the Robert Redford Conservancy at Pitzer College, the Center for Community Action and Environmental Justice, and IQAir, we installed 58 particulate air quality monitors in homes across Bloomington, Fontana, and Rialto. Most residences have an indoor and an outdoor monitor. After over a year of data collection, this dashboard provides interactive tools to visualize and analyze the collected data.
 
 ### Dashboard Guide
 
-* **Map** will show you all the data from the community air monitors on a map. You can look back at air quality in the past up to February 2025.
+* **Map** shows all of the data from the community air monitors on a map. Air quality data is available starting in February 2025.
 * **Writeup** contains a more in-depth description of the problems of warehouse expansion, air quality, data accessibility, and public health.
-* **Interactive Data** contains a few extra charts that you can play around with to see the data in other ways.
+* **Interactive Data** contains a few extra charts to see the data in other ways and make a number of comparisons.
 
 ### Resources and Documentation
 * **Air Quality Monitoring Platforms**
@@ -591,7 +591,7 @@ In a partnership between the Robert Redford Conservancy at Pitzer College, the C
 markdown("
 ### Data Accessibility                        
                         
-The Inland Empire is among the most polluted areas in the country due to decades of extensive warehousing and trucking through the region. However, it is severely underrepresented within many air monitoring networks, which makes the air quality problem seem less important than it really is, making it more difficult to make progress with improvements and solutions.
+The Inland Empire is among the most polluted areas in the country due to decades of extensive warehousing and trucking through the region. However, it is severely underrepresented within many air monitoring networks, masking the severity of air quality issues and making progress towards solutions more difficult. 
 
 PurpleAir, a popular hub for community-sourced air monitoring, displays this lack of information. Cities in Southern California with higher average incomes, larger white populations, and less industrial development and air pollution have far more air monitors per capita. The cities of Fontana, Bloomington, and Rialto, with a total population of about 350,000, only have 2 air monitors. 
 "),
@@ -599,7 +599,7 @@ PurpleAir, a popular hub for community-sourced air monitoring, displays this lac
 fluidRow(column(12, markdown("![PurpleAir](www/purpleair_small.png)"))),
 
 markdown("
-This initiative helps to improve access to important air quality data in cities affected by warehouse and trucking expansion. We can see patterns and spikes that occur throughout the year, and see how bad air quality in the Inland Empire can get.
+This initiative helps to improve access to important air quality data in cities affected by warehouse and trucking expansion. We can see patterns and spikes that occur throughout the year, and see how bad air quality in the Inland Empire can get. The data below is from these air monitors and is helping to fill the gap in data in this area. 
 "),
 
 fluidRow(
@@ -616,9 +616,9 @@ fluidRow(
 markdown("
 ### Health Impacts
 
-While air pollution is known to make residents’ everyday quality of life worse, there are also many potential long-term health concerns in both children and adults who live, work, and attend school in places with poor air quality for months or years.
+While air pollution is known to make residents’ everyday quality of life worse, there are also many potential long-term health concerns in both children and adults who live, work, and attend school in places with poor air quality.
 
-Medical research finds that the risk of many lung conditions is proportionally higher as the amount of particulate matter in the air gets higher. Many medical papers define a \"hazard ratio\" which typically states that the likelihood of a patient developing a  condition increases by a certain percentage for each additional 5 µg/m³ of PM2.5 (Raaschou-Nielsen et al., 2013, Turner et al., 2011, Katanoda et al., 2011, Tecer et al., 2007). In 2025, the Inland Empire had about 7.5 µg/m³ more than the rest of the United States on average.
+Medical research finds that the risk of many lung conditions is proportionally higher as the amount of particulate matter in the air increases. Many medical papers define a \"hazard ratio\" which typically states that the likelihood of a patient developing a condition increases by a certain percentage for each additional 5 µg/m³ of PM2.5 (Raaschou-Nielsen et al., 2013, Turner et al., 2011, Katanoda et al., 2011, Tecer et al., 2007). In 2025, the Inland Empire had about 7.5 µg/m³ more PM2.5 than the rest of the United States on average. The increased health risks are summarized below.
 "),
 
 plotOutput('Health'),
@@ -644,9 +644,9 @@ markdown("
 
 ### Solutions
 
-Stronger evidence for region-wide poor air quality throughout the year can help to build up cases for warehouse development and truck routes being actively harmful to public health and quality of life for everyone who lives in the Inland Empire.
+Strong evidence for region-wide poor air quality throughout the year demonstrates that warehouse development and truck routes are actively harmful to public health and quality of life in the Inland Empire.
 
-There are many potential avenues for solutions through municipal and regional government. Community organizing through the Freight Coalition has resulted in action being taken to realign truck routes in Riverside County to avoid residential areas and sensitive receptors such as schools. 
+There are many potential avenues for solutions through municipal and regional government. Community organizing through the Freight Coalition realigned truck routes in Riverside County to avoid residential areas and sensitive receptors such as schools. 
 
 Future solutions may involve bolstering public health initiatives to alleviate stress during poor air quality events, improving reliability and redundancy of electricity systems to avoid blackouts in residential areas, and improving the ventilation and filtration systems in homes.
 
@@ -678,7 +678,7 @@ Future solutions may involve bolstering public health initiatives to alleviate s
                         "
                         While PM2.5 air quality in Southern California is worse than the recommended levels by the state and federal government, it's much worse in Fontana, Bloomington, and Rialto, which can pose significant risks to residents' respiratory health.
                         
-                        Here, you can compare particulate matter levels from air quality monitors in different regions, alongside a couple of health standards from government bodies. 
+                        Here, you can compare particulate matter levels from air quality monitors in different regions, alongside a couple of health standards from government bodies. The data for the Inland Empire comes from these air quality monitors in Bloomington, Fontana, and Rialto.
                         "
                     )),
                     layout_sidebar(
